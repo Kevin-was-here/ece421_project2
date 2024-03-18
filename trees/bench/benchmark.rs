@@ -11,7 +11,6 @@ mod avl_tree;
 
 use std::iter;
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
-use rand::{thread_rng, Rng};
 
 //---------- RB Tree ---------------
 fn bench_rb_tree_insert(c: &mut Criterion){
