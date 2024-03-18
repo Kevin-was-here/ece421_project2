@@ -28,12 +28,12 @@ pub struct RedBlackTree<T> {
 }
 
 impl<T: Ord> Traversible<T> for RedBlackTreeNode<T> {
-    fn left_mut(&mut self) -> &mut Option<Rc<RefCell<Self>>> {
-        return self.left.borrow_mut();
-    }
-    fn right_mut(&mut self) -> &mut Option<Rc<RefCell<Self>>> {
-        return self.right.borrow_mut();
-    }
+    // fn left_mut(&mut self) -> &mut Option<Rc<RefCell<Self>>> {
+    //     return self.left.borrow_mut();
+    // }
+    // fn right_mut(&mut self) -> &mut Option<Rc<RefCell<Self>>> {
+    //     return self.right.borrow_mut();
+    // }
     fn left(&self) -> &Option<Rc<RefCell<Self>>> {
         return &self.left;
     }
@@ -116,7 +116,7 @@ impl<T: Ord> RedBlackTreeNode<T> {
     }
 
     fn is_child(&self, side: Side) -> bool {
-        match &self.is_child {
+        match &self.is_child { 
             None => false,
             Some(val) => {
                 if val == &side { true } else { false }
