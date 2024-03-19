@@ -52,6 +52,30 @@ pub trait Node<T>: Traversible<T> {
 
 }
 
+pub trait Tree<T: Ord + Copy + std::fmt::Debug + std::fmt::Display> {
+    type Node: Node<T>;
+    fn new() -> Self;
+    fn get_root(&self) -> &Option<Rc<RefCell<Self::Node>>>;
+    fn set_root(&mut self, node: Option<Rc<RefCell<Self::Node>>>);
+    // fn delete(&mut self, key: T);
+    // fn get_height(&self) -> usize;
+    // fn is_empty(&self) -> bool;
+    fn insert_fix(&mut self, node: Rc<RefCell<Self::Node>>) -> Rc<RefCell<Self::Node>>;
+
+    fn rotate(&mut self, side: Side, node: Rc<RefCell<Self::Node>>);
+    
+    fn insert(&mut self, key: T) {
+        // first insert node as though in a BST
+        let root = self.get_root();
+        let (mut new_root, inserted_node, fix_tree) = bst_insert(root.clone(), key);
+
+        if fix_tree {
+            new_root = self.insert_fix(inserted_node);
+        }
+        self.set_root(Some(new_root.clone()));
+    } 
+}
+
 pub fn get_height<T: Ord + Copy, N: Node<T>>(root: Option<Rc<RefCell<N>>>) -> usize {
     (unimplemented!())
 }
