@@ -34,16 +34,26 @@ pub trait Node<T>: Traversible<T> {
     fn less(&self, val: T) -> bool;
 
     fn get_child(&self, side: Side) -> Option<Rc<RefCell<Self>>>;
+    fn get_is_child(&self) -> &Option<Side>;
+    fn is_child(&self, side: Side) -> bool;
     fn take_child(&mut self, side: Side) -> Option<Rc<RefCell<Self>>>;
     fn set_child(&mut self, side: Side, node: Option<Rc<RefCell<Self>>>);
+    fn child_count(&self) -> usize;
 
     fn set_parent(&mut self, is_child: Option<Side>, node: Option<Rc<RefCell<Self>>>);
     fn get_parent(&self) -> Option<Rc<RefCell<Self>>>;
     fn get_parent_mut(&mut self) -> &mut Option<Rc<RefCell<Self>>>;
+
+    fn get_sibling(&self) -> Option<Rc<RefCell<Self>>>;
+    fn get_uncle(&self) -> Option<Rc<RefCell<Self>>>;
+    fn get_grandparent(&self) -> Option<Rc<RefCell<Self>>>;
+    
+    fn is_leaf(&self) -> bool;
+
 }
 
 pub fn get_height<T: Ord + Copy, N: Node<T>>(root: Option<Rc<RefCell<N>>>) -> usize {
-    0
+    (unimplemented!())
 }
 
 pub fn bst_insert<T: Ord + Copy, N: Node<T>>(node: Option<Rc<RefCell<N>>>, k: T) -> (Rc<RefCell<N>>, Rc<RefCell<N>>, bool) {
@@ -72,23 +82,39 @@ pub fn bst_insert<T: Ord + Copy, N: Node<T>>(node: Option<Rc<RefCell<N>>>, k: T)
     }
 }
 
-// pub fn bst_delete<T: Ord + Copy, N: Node<T>>(root: Option<Rc<RefCell<N>>>, k: T) -> (Option<Rc<RefCell<N>>>, bool) {
-//     let mut current_node = root;
-//     loop {
-//         if current_node.is_none() {
-//             return (None, false)
-//         }
-//         let n = current_node.unwrap();
-//         if n.as_ref().borrow().equal(k) {
-//             // bst_replace(current_node);
-//             return (current_node, true)
-//         }
-//         else if n.as_ref().borrow().greater(k) {
-//             current_node = n.as_ref().borrow().get_child(Side::Left);
-//         }
-//         else {
-//             current_node = n.as_ref().borrow().get_child(Side::Right);
-//         }
+pub fn bst_find<T: Ord + Copy, N: Node<T>>(root: Option<Rc<RefCell<N>>>, k: T) -> Option<Rc<RefCell<N>>> {
+    let mut current_node = root;
+    // Find then replace
+    loop {
+        if current_node.is_none() {
+            return None
+        }
+        let n = current_node.clone().unwrap();
+        if n.as_ref().borrow().equal(k) {
+            return current_node.clone()
+        }
+        else if n.as_ref().borrow().greater(k) {
+            current_node = n.as_ref().borrow().get_child(Side::Left);
+        }
+        else {
+            current_node = n.as_ref().borrow().get_child(Side::Right);
+        }
+    }
+}
+
+// pub fn bst_delete<T: Ord + Copy, N: Node<T>>(root: Option<Rc<RefCell<N>>>, k: T) {
+//     match bst_find(root, k) {
+//         None => (),
+//         Some(n) => {
+//             bst_replace(n);
+//         },
+//     }
+// }
+
+// pub fn bst_replace<T: Ord + Copy, N: Node<T>>(node: Rc<RefCell<N>>) {
+//     let mut n = node.as_ref().borrow_mut();
+//     if n.child_count() == 0 {
+//         let mut p = n.get_parent().unwrap().as_ref().borrow_mut();
 //     }
 // }
 

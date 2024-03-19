@@ -69,11 +69,27 @@ impl<T: Ord> Node<T> for RedBlackTreeNode<T> {
         self.key < val
     }
 
+    // return the child from the given side
     fn get_child(&self, side: Side) -> MaybeRedBlackTree<T> {
         match side {
             Side::Left => self.left.clone(),
             Side::Right => self.right.clone(),
         }
+    }
+
+    // check if the node is a left or right child of another node
+    fn is_child(&self, side: Side) -> bool {
+        match &self.is_child {
+            None => false,
+            Some(val) => {
+                if val == &side { true } else { false }
+            }
+        }
+    }
+
+    // if node has a parent, return the side it is on
+    fn get_is_child(&self) -> &Option<Side> {
+        &self.is_child
     }
 
     fn take_child(&mut self, side: Side) -> MaybeRedBlackTree<T> {
@@ -83,12 +99,58 @@ impl<T: Ord> Node<T> for RedBlackTreeNode<T> {
         }
     }
 
+    // attach a child node to its parent
     fn set_child(&mut self, side: Side, child: MaybeRedBlackTree<T>) {
         match side {
             Side::Left => self.left = child,
             Side::Right => self.right = child,
         }
     }
+
+    fn child_count(&self) -> usize {
+        if self.get_child(Side::Left).is_none() && self.get_child(Side::Left).is_none() {
+            0    
+        } else if self.get_child(Side::Left).is_some() && self.get_child(Side::Right).is_some() {
+            2
+        } else {
+            1
+        }
+    }
+
+    fn is_leaf(&self) -> bool {
+        // check left and right pointers to determine if this node is a leaf node
+        if let None = self.left {
+            if let None = self.right {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+    fn get_sibling(&self) -> MaybeRedBlackTree<T> {
+        if let Some(p) = self.get_parent() {
+            let parent = p.as_ref().borrow_mut();
+            if self.is_child(Side::Left) {
+                parent.get_child(Side::Right)
+            } else if self.is_child(Side::Right) {
+                parent.get_child(Side::Left)
+            } else { None }
+        }
+        else { None }
+    }
+
+    fn get_uncle(&self) -> MaybeRedBlackTree<T> {
+        if let Some(p) = self.get_parent() {
+            p.as_ref().borrow().get_sibling()
+        } else { None }
+    } 
+
+    fn get_grandparent(&self) -> MaybeRedBlackTree<T> {
+        if let Some(p) = self.get_parent() {
+            p.as_ref().borrow().get_parent()
+        } else { None }
+    } 
 
     fn get_parent(&self) -> MaybeRedBlackTree<T> {
         self.parent.clone()
@@ -98,6 +160,7 @@ impl<T: Ord> Node<T> for RedBlackTreeNode<T> {
         self.parent.borrow_mut()
     }
 
+    // attach a parent node to its child
     fn set_parent(&mut self, is_child: Option<Side>, parent: MaybeRedBlackTree<T>) {
         self.parent = parent;
         self.is_child = is_child;
@@ -125,43 +188,6 @@ impl<T: Ord + std::fmt::Debug> RedBlackTreeNode<T> {
         self.set_color(temp); 
     }
 
-    fn is_child(&self, side: Side) -> bool {
-        match &self.is_child {
-            None => false,
-            Some(val) => {
-                if val == &side { true } else { false }
-            }
-        }
-    }
-
-    fn get_is_child(&self) -> &Option<Side> {
-        &self.is_child
-    }
-
-    fn get_sibling(&self) -> MaybeRedBlackTree<T> {
-        if let Some(p) = self.get_parent() {
-            let parent = p.as_ref().borrow_mut();
-            if self.is_child(Side::Left) {
-                parent.get_child(Side::Right)
-            } else if self.is_child(Side::Right) {
-                parent.get_child(Side::Left)
-            } else { None }
-        }
-        else { None }
-    }
-
-    fn get_uncle(&self) -> MaybeRedBlackTree<T> {
-        if let Some(p) = self.get_parent() {
-            p.as_ref().borrow().get_sibling()
-        } else { None }
-    } 
-
-    fn get_grandparent(&self) -> MaybeRedBlackTree<T> {
-        if let Some(p) = self.get_parent() {
-            p.as_ref().borrow().get_parent()
-        } else { None }
-    } 
-
     fn uncle_is_red(&self) -> bool {
         if let Some(u) = self.get_uncle() {
             u.as_ref().borrow().is_red()
@@ -174,16 +200,6 @@ impl<T: Ord + std::fmt::Debug> RedBlackTreeNode<T> {
             p.as_ref().borrow().is_red()
         }
         else { false }
-    }
-
-    fn is_leaf(&self) -> bool {
-        // check left and right pointers to determine if this node is a leaf node
-        if let None = self.left {
-            if let None = self.right {
-                return true;
-            }
-        }
-        return false;
     }
 
     fn print_inorder_node(&self) {
@@ -226,13 +242,14 @@ impl<T: Ord + Copy + std::fmt::Debug> RedBlackTree<T> {
         let (mut new_root, inserted_node, fix_tree) = bst_insert(root.clone(), key);
 
         if fix_tree {
-            new_root = self.insert_fix(inserted_node); // replace with actual fix function
+            new_root = self.insert_fix(inserted_node);
             self.size += 1;
         }
         new_root.as_ref().borrow_mut().set_color(NodeColor::Black);
         self.set_root(new_root);
     } 
 
+    // traverse up the tree from the given node and return the root
     fn climb_to_root(&self, node: Rc<RefCell<RedBlackTreeNode<T>>>) -> Rc<RefCell<RedBlackTreeNode<T>>> {
         let parent = node.as_ref().borrow_mut().get_parent();
         if parent.is_none() {
@@ -248,6 +265,8 @@ impl<T: Ord + Copy + std::fmt::Debug> RedBlackTree<T> {
             p
         }
     }
+
+    // rebalance the tree after insertion
     fn insert_fix(&mut self, node: Rc<RefCell<RedBlackTreeNode<T>>>) -> Rc<RefCell<RedBlackTreeNode<T>>> {
         // get parent: is parent the root?
         let mut current_node = node.clone();
@@ -260,7 +279,7 @@ impl<T: Ord + Copy + std::fmt::Debug> RedBlackTree<T> {
             let temp = current_node.clone();
 
             if temp.as_ref().borrow().uncle_is_red() {
-                self.recolor_rbtree(temp.clone());
+                self.recolor_ins(temp.clone());
                 if let Some(grandparent) = temp.as_ref().borrow().get_grandparent() {
                     current_node = grandparent.clone();
                 }
@@ -271,7 +290,7 @@ impl<T: Ord + Copy + std::fmt::Debug> RedBlackTree<T> {
             }
             else {
                 let temp_clone = temp.clone();
-                self.rotate_rbtree(temp_clone);
+                self.rotate_ins(temp_clone);
                 n = current_node.as_ref().borrow();
                 red_parent = current_node.as_ref().borrow().parent_is_red();
             }
@@ -283,7 +302,7 @@ impl<T: Ord + Copy + std::fmt::Debug> RedBlackTree<T> {
         root
     }
 
-    fn recolor_rbtree(&self, node: Rc<RefCell<RedBlackTreeNode<T>>>) {
+    fn recolor_ins(&self, node: Rc<RefCell<RedBlackTreeNode<T>>>) {
         let n = node.as_ref().borrow();
         if n.get_grandparent().is_some() && n.get_uncle().is_some() {
             n.get_grandparent().unwrap().as_ref().borrow_mut().set_color(NodeColor::Red);
@@ -292,7 +311,7 @@ impl<T: Ord + Copy + std::fmt::Debug> RedBlackTree<T> {
         }
     }
 
-    fn rotate_rbtree(&mut self, node: Rc<RefCell<RedBlackTreeNode<T>>>) {
+    fn rotate_ins(&mut self, node: Rc<RefCell<RedBlackTreeNode<T>>>) {
         let node_side;
         let parent_side;
         let parent;
@@ -326,48 +345,48 @@ impl<T: Ord + Copy + std::fmt::Debug> RedBlackTree<T> {
     }
     
     fn rotate(&mut self, side: Side, node: Rc<RefCell<RedBlackTreeNode<T>>>) {
-        // assume this is left rotation (side = left)
+
         let mut n = node.as_ref().borrow_mut();
-        // 1. get child = n.right 
-        if let Some(child_rc) = n.get_child(!side) {
-            // 2. Turn child's left subtree into n's right subtree
-            // get left subtree
-            let mut child = child_rc.as_ref().borrow_mut();
-            // child.left = x.right
+
+        if let Some(child_ptr) = n.get_child(!side) {
+            let mut child = child_ptr.as_ref().borrow_mut();
             let other_child = n.get_child(side);
             n.set_child(!side, other_child);
-            if let Some(val) = n.get_child(side) {
-                let mut grandchild = val.as_ref().borrow_mut();
+
+            if let Some(ptr) = n.get_child(side) {
+                let mut grandchild = ptr.as_ref().borrow_mut();
                 grandchild.set_parent(Some(side), Some(node.clone()));
             }
+
             child.set_parent(n.get_is_child().clone(), n.get_parent().clone());
+
             if n.get_parent().is_none() {
-                self.set_root(child_rc.clone());
+                self.set_root(child_ptr.clone());
             } else {
-                // child is now left child of n's parent
-                let n_parent_rc = n.get_parent().clone().unwrap();
-                let mut n_parent = n_parent_rc.as_ref().borrow_mut();
+                let parent_ptr = n.get_parent().clone().unwrap();
+                let mut parent = parent_ptr.as_ref().borrow_mut();
                 if n.is_child(side) {
-                    n_parent.set_child(side, Some(child_rc.clone()));
+                    parent.set_child(side, Some(child_ptr.clone()));
                 } else {
-                    n_parent.set_child(!side, Some(child_rc.clone()));
+                    parent.set_child(!side, Some(child_ptr.clone()));
                 }
             }
+
             child.set_child(side, Some(node.clone()));
-            n.set_parent(Some(side), Some(child_rc.clone()));
+            n.set_parent(Some(side), Some(child_ptr.clone()));
         }   
     }
 
     // fn delete(&mut self, k: T) {
-    //     let root = self.get_root();
-    //     if root.is_none() { return; }
-    //     let (mut new_root, fix_tree) = bst_delete(root.clone(), k);
-    //     if fix_tree {
-    //         // new_root = self.delete_fix(inserted_node); // replace with actual fix function
-    //         self.size -= 1;
-    //     }
-    //     new_root.as_ref().borrow_mut().set_color(NodeColor::Black);
-    //     self.set_root(new_root);
+        // similar to insert
+        // let root = self.get_root();
+        // bst_delete(root.clone(), k); // should return root here 
+        // if fix_tree {
+        //     // new_root = self.delete_fix(inserted_node); // replace with actual fix function
+        //     self.size -= 1;
+        // }
+        // new_root.as_ref().borrow_mut().set_color(NodeColor::Black);
+        // self.set_root(new_root);
     // }
 
     pub fn print_inorder(&self) {
