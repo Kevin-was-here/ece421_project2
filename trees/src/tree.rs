@@ -20,8 +20,8 @@ impl Not for Side {
 }
 
 pub trait Traversible<T> {
-    fn left_mut(&mut self) -> &mut Option<Rc<RefCell<Self>>>;
-    fn right_mut(&mut self) -> &mut Option<Rc<RefCell<Self>>>;
+    // fn left_mut(&mut self) -> &mut Option<Rc<RefCell<Self>>>;
+    // fn right_mut(&mut self) -> &mut Option<Rc<RefCell<Self>>>;
     fn left(&self) -> &Option<Rc<RefCell<Self>>>;
     fn right(&self) -> &Option<Rc<RefCell<Self>>>;
 }

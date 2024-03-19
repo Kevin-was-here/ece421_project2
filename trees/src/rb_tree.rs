@@ -33,12 +33,12 @@ pub struct RedBlackTree<T> {
 }
 
 impl<T: Ord> Traversible<T> for RedBlackTreeNode<T> {
-    fn left_mut(&mut self) -> &mut Option<Rc<RefCell<Self>>> {
-        return self.left.borrow_mut();
-    }
-    fn right_mut(&mut self) -> &mut Option<Rc<RefCell<Self>>> {
-        return self.right.borrow_mut();
-    }
+    // fn left_mut(&mut self) -> &mut Option<Rc<RefCell<Self>>> {
+    //     return self.left.borrow_mut();
+    // }
+    // fn right_mut(&mut self) -> &mut Option<Rc<RefCell<Self>>> {
+    //     return self.right.borrow_mut();
+    // }
     fn left(&self) -> &Option<Rc<RefCell<Self>>> {
         return &self.left;
     }
@@ -132,7 +132,6 @@ impl<T: Ord> Node<T> for RedBlackTreeNode<T> {
         }
         return false;
     }
-
 
     fn get_sibling(&self) -> MaybeRedBlackTree<T> {
         if let Some(p) = self.get_parent() {
