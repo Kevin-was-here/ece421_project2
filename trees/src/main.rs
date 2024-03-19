@@ -13,6 +13,7 @@ fn main() {
     tree.insert(6);
 
     tree.print_inorder();
+    tree.print_structure();
 
     let mut tree2: RedBlackTree<char> = RedBlackTree::new();
     tree2.insert('a');
@@ -20,6 +21,7 @@ fn main() {
     tree2.insert('c');
     tree2.insert('v');
     tree2.print_inorder();
+    tree2.print_structure();
 //     3
 //    /  \
 //   1    5
