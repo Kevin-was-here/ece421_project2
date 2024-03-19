@@ -126,16 +126,19 @@ impl<T: Ord + std::fmt::Debug + std::fmt::Display>  AvlTreeNode<T> {
         return left_height - right_height;
     }
 
-    fn min_value_node(&self, node: AvlTreeNode<T>) -> AvlTreeNode<T> {
 
-        //let mut current = node;
+    // Dont know if i need this function
+    // helper to get the minimum value node
+    // fn min_value_node(&self, node: AvlTreeNode<T>) -> AvlTreeNode<T> {
 
-        //while current.left is not none{
+    //     //let mut current = node;
 
-        //  current = current.left;
+    //     //while current.left is not none{
 
-        //return current;
-    }   
+    //     //  current = current.left;
+
+    //     //return current;
+    // }   
 
 
     fn insert(&self, root:AvlTree<T>, key: T) {
