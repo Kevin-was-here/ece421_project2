@@ -361,18 +361,6 @@ impl<T: Ord + Copy + std::fmt::Debug + std::fmt::Display> Tree<T> for RedBlackTr
         }   
     }
 
-    // fn delete(&mut self, k: T) {
-        // similar to insert
-        // let root = self.get_root();
-        // bst_delete(root.clone(), k); // should return root here 
-        // if fix_tree {
-        //     // new_root = self.delete_fix(inserted_node); // replace with actual fix function
-        //     self.size -= 1;
-        // }
-        // new_root.as_ref().borrow_mut().set_color(NodeColor::Black);
-        // self.set_root(new_root);
-    // }
-
 }
 
 impl<T> RedBlackTree<T> 

@@ -57,10 +57,10 @@ pub trait Tree<T: Ord + Copy + std::fmt::Debug + std::fmt::Display> {
     fn new() -> Self;
     fn get_root(&self) -> &Option<Rc<RefCell<Self::Node>>>;
     fn set_root(&mut self, node: Option<Rc<RefCell<Self::Node>>>);
-    // fn delete(&mut self, key: T);
     // fn get_height(&self) -> usize;
     // fn is_empty(&self) -> bool;
     fn insert_fix(&mut self, node: Rc<RefCell<Self::Node>>) -> Rc<RefCell<Self::Node>>;
+    // fn delete_fix(&mut self, key: T);   
 
     fn rotate(&mut self, side: Side, node: Rc<RefCell<Self::Node>>);
     
@@ -74,10 +74,16 @@ pub trait Tree<T: Ord + Copy + std::fmt::Debug + std::fmt::Display> {
         }
         self.set_root(Some(new_root.clone()));
     } 
-}
 
-pub fn get_height<T: Ord + Copy, N: Node<T>>(root: Option<Rc<RefCell<N>>>) -> usize {
-    (unimplemented!())
+    fn delete(&mut self, k: T) {
+        // similar to insert
+        let root = self.get_root();
+        let (mut new_root, fix_tree) = bst_delete(root.clone(), k); // should return root here 
+        if fix_tree {
+            // new_root = self.delete_fix(inserted_node); // replace with actual fix function
+        }
+        self.set_root(new_root);
+    }
 }
 
 pub fn bst_insert<T: Ord + Copy, N: Node<T>>(node: Option<Rc<RefCell<N>>>, k: T) -> (Rc<RefCell<N>>, Rc<RefCell<N>>, bool) {
@@ -126,21 +132,27 @@ pub fn bst_find<T: Ord + Copy, N: Node<T>>(root: Option<Rc<RefCell<N>>>, k: T) -
     }
 }
 
-// pub fn bst_delete<T: Ord + Copy, N: Node<T>>(root: Option<Rc<RefCell<N>>>, k: T) {
-//     match bst_find(root, k) {
-//         None => (),
-//         Some(n) => {
-//             bst_replace(n);
-//         },
-//     }
-// }
+pub fn bst_delete<T: Ord + Copy, N: Node<T>>(root: Option<Rc<RefCell<N>>>, k: T) {
+    match bst_find(root, k) {
+        None => (),
+        Some(n) => {
+            bst_replace(n);
+        },
+    }
+}
 
-// pub fn bst_replace<T: Ord + Copy, N: Node<T>>(node: Rc<RefCell<N>>) {
-//     let mut n = node.as_ref().borrow_mut();
-//     if n.child_count() == 0 {
-//         let mut p = n.get_parent().unwrap().as_ref().borrow_mut();
-//     }
-// }
+pub fn bst_replace<T: Ord + Copy, N: Node<T>>(node: Rc<RefCell<N>>) {
+    let mut n = node.as_ref().borrow_mut();
+    if n.child_count() == 0 && n.get_parent().is_none() {
+        
+    } else if n.child_count() == 0 && n.get_parent().is_some() {
+
+    } else if n.child_count() == 1 && n.get_child(Side::Left).is_none() {
+
+    } else if n.child_count() == 1 && n.get_child(Side::Right).is_none() {
+
+    } else {}
+}
 
 pub fn insert_side<T: Ord + Copy, N: Node<T>>(node: Rc<RefCell<N>>, k: T) -> Option<Side> {
     let n = node.as_ref().borrow();

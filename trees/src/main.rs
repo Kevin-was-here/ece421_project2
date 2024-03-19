@@ -31,5 +31,5 @@ fn main() {
     tree2.print_inorder();
     tree2.print_structure();
 
-    let mut avl:AvlTree<i32> = AvlTree::new();
+    // let mut avl:AvlTree<i32> = AvlTree::new();
 }
