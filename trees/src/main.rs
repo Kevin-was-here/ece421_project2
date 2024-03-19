@@ -22,9 +22,4 @@ fn main() {
     tree2.insert('v');
     tree2.print_inorder();
     tree2.print_structure();
-//     3
-//    /  \
-//   1    5
-//    \   / \
-//     2 4   6
 }

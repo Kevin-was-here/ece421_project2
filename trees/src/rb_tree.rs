@@ -269,6 +269,7 @@ impl<T: Ord + Copy + std::fmt::Debug + std::fmt::Display> RedBlackTree<T> {
         self.root = Some(node);
     }
 
+    // PART 1.1 insert a node
     pub fn insert(&mut self, key: T) {
         // first insert node as though in a BST
         let root = self.get_root();
@@ -301,7 +302,6 @@ impl<T: Ord + Copy + std::fmt::Debug + std::fmt::Display> RedBlackTree<T> {
 
     // rebalance the tree after insertion
     fn insert_fix(&mut self, node: Rc<RefCell<RedBlackTreeNode<T>>>) -> Rc<RefCell<RedBlackTreeNode<T>>> {
-        // get parent: is parent the root?
         let mut current_node = node.clone();
         let mut n = current_node.as_ref().borrow();
         let mut not_root = n.get_parent().is_some();
