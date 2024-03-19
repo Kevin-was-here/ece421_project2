@@ -42,6 +42,10 @@ pub trait Node<T>: Traversible<T> {
     fn get_parent_mut(&mut self) -> &mut Option<Rc<RefCell<Self>>>;
 }
 
+pub fn get_height<T: Ord + Copy, N: Node<T>>(root: Option<Rc<RefCell<N>>>) -> usize {
+    0
+}
+
 pub fn bst_insert<T: Ord + Copy, N: Node<T>>(node: Option<Rc<RefCell<N>>>, k: T) -> (Rc<RefCell<N>>, Rc<RefCell<N>>, bool) {
     match node {
         None => {
@@ -57,6 +61,7 @@ pub fn bst_insert<T: Ord + Copy, N: Node<T>>(node: Option<Rc<RefCell<N>>>, k: T)
                     let mut node = n.as_ref().borrow_mut();
                     let old_subtree = node.take_child(side);
                     let (new_subtree, new_node, fix_tree) = bst_insert(old_subtree, k);
+
                     // update links between current node and its child
                     node.set_child(side, Some(new_subtree.clone()));
                     new_subtree.as_ref().borrow_mut().set_parent(Some(side), Some(n.clone())); 
@@ -67,25 +72,25 @@ pub fn bst_insert<T: Ord + Copy, N: Node<T>>(node: Option<Rc<RefCell<N>>>, k: T)
     }
 }
 
-pub fn bst_delete<T: Ord + Copy, N: Node<T>>(root: Option<Rc<RefCell<N>>>, k: T) -> (Option<Rc<RefCell<N>>>, bool) {
-    let mut current_node = root;
-    loop {
-        if current_node.is_none() {
-            return (None, false)
-        }
-        let n = current_node.unwrap();
-        if n.as_ref().borrow().equal(k) {
-            // bst_replace(current_node);
-            return (current_node, true)
-        }
-        else if n.as_ref().borrow().greater(k) {
-            current_node = n.as_ref().borrow().get_child(Side::Left);
-        }
-        else {
-            current_node = n.as_ref().borrow().get_child(Side::Right);
-        }
-    }
-}
+// pub fn bst_delete<T: Ord + Copy, N: Node<T>>(root: Option<Rc<RefCell<N>>>, k: T) -> (Option<Rc<RefCell<N>>>, bool) {
+//     let mut current_node = root;
+//     loop {
+//         if current_node.is_none() {
+//             return (None, false)
+//         }
+//         let n = current_node.unwrap();
+//         if n.as_ref().borrow().equal(k) {
+//             // bst_replace(current_node);
+//             return (current_node, true)
+//         }
+//         else if n.as_ref().borrow().greater(k) {
+//             current_node = n.as_ref().borrow().get_child(Side::Left);
+//         }
+//         else {
+//             current_node = n.as_ref().borrow().get_child(Side::Right);
+//         }
+//     }
+// }
 
 pub fn insert_side<T: Ord + Copy, N: Node<T>>(node: Rc<RefCell<N>>, k: T) -> Option<Side> {
     let n = node.as_ref().borrow();
