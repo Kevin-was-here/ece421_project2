@@ -1,7 +1,7 @@
 use std::borrow::{Borrow, BorrowMut};
 use std::cell::RefCell;
 use std::rc::Rc;
-use crate::node::*;
+use super::node::*;
 
 pub trait Tree<T: Ord + Copy + std::fmt::Debug + std::fmt::Display> {
     type Node: Node<T>;
