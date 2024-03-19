@@ -105,7 +105,7 @@ impl<T: Ord> Node<T> for RedBlackTreeNode<T> {
 
 }
 
-impl<T: Ord> RedBlackTreeNode<T> {
+impl<T: Ord + std::fmt::Debug> RedBlackTreeNode<T> {
     fn is_red(&self) -> bool {
         self.color == NodeColor::Red
     }
@@ -176,6 +176,35 @@ impl<T: Ord> RedBlackTreeNode<T> {
         else { false }
     }
 
+    fn is_leaf(&self) -> bool {
+        // check left and right pointers to determine if this node is a leaf node
+        if let None = self.left {
+            if let None = self.right {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    fn print_inorder_node(&self) {
+        // function called recursively to traverse nodes in order and print values
+        // if this is a leaf node, print its value
+        if self.is_leaf() {
+            println!("{:?}", self.get_key());
+            return;
+        }
+        // otherwise, first go left for lower values
+        if let Some(ptr) = &self.left {
+            ptr.as_ref().borrow().print_inorder_node();
+        }
+        // then print this node's value
+        println!("{:?}", self.get_key());
+        // then go right for higher values
+        if let Some(ptr) = &self.right {
+            ptr.as_ref().borrow().print_inorder_node();
+        }
+    }
+
 }
 
 impl<T: Ord + Copy + std::fmt::Debug> RedBlackTree<T> {
@@ -192,8 +221,10 @@ impl<T: Ord + Copy + std::fmt::Debug> RedBlackTree<T> {
     }
 
     pub fn insert(&mut self, key: T) {
+        // first insert node as though in a BST
         let root = self.get_root();
         let (mut new_root, inserted_node, fix_tree) = bst_insert(root.clone(), key);
+
         if fix_tree {
             new_root = self.insert_fix(inserted_node); // replace with actual fix function
             self.size += 1;
@@ -338,4 +369,16 @@ impl<T: Ord + Copy + std::fmt::Debug> RedBlackTree<T> {
     //     new_root.as_ref().borrow_mut().set_color(NodeColor::Black);
     //     self.set_root(new_root);
     // }
+
+    pub fn print_inorder(&self) {
+        println!("------- Tree In-Order -------");
+        if let Some(ptr) = &self.root {
+            let root = ptr.as_ref().borrow();
+            root.print_inorder_node();
+        }
+        else {
+            println!("Empty tree");
+        }
+        println!("-----------------------------");
+    }
 }
