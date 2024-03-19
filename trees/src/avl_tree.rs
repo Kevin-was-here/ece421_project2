@@ -5,18 +5,19 @@ use std::borrow::{Borrow, BorrowMut};
 
 type MaybeAvlTree<T> = Option<Rc<RefCell<AvlTreeNode<T>>>>;
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug)]
 struct AvlTreeNode<T> {
-    key: T,
+    pub key: T,
+    pub parent: MaybeAvlTree<T>,
+    pub height: i32,
     left: MaybeAvlTree<T>,
     right: MaybeAvlTree<T>,
-    parent: MaybeAvlTree<T>,
-    height: i32,
     is_child: Option<Side>,
 }
 
 struct AvlTree<T> {
     root: MaybeAvlTree<T>,
+    size: usize,
 }
 
 impl<T: Ord> Traversible<T> for AvlTreeNode<T> {
@@ -92,33 +93,48 @@ impl<T: Ord> Node<T> for AvlTreeNode<T>{
     }   
 }
 
-impl<T: Ord + Copy + std::fmt::Debug> AvlTree<T> {
+impl<T: Ord + std::fmt::Debug + std::fmt::Display>  AvlTreeNode<T> {
 
     // Helper function to get the height of a node.
-    fn height(node: &MaybeAvlTree<T>) -> i32 {
-        match node {
-            Some(n) => n.borrow().height,
-            None => 0, // Consider changing this to -1 if you define height of `None` as -1.
-        }
+    fn get_height(&self) -> i32 {
+        return self.height;
     }
 
-    fn get_balance_factor(&self, root: AvlTree<T>) -> i32 {
-        if root.is_none() {
-            return 0;
+    // Helper function to get the balance factor of a node.
+    fn get_balance_factor(&self) -> i32 {
+
+        //declare left_height and right_height
+        let left_height: i32;
+        let right_height: i32;
+
+        //borrow and get the left child height
+        if let Some(left_node) = self.get_child(Side::Left){
+            let left_node = left_node.as_ref().borrow_mut();
+            let left_height = left_node.get_height();
+        } else {
+            let left_height = 0;
         }
-        let left_height = root.left.height;
-        let right_height = root.right.height;
-        return (left_height - right_height) as i32;
+        
+        //borrow and get the right child height
+        if let Some(right_node) = self.get_child(Side::Right){
+            let right_node = right_node.as_ref().borrow_mut();
+            let right_height = right_node.get_height();
+        } else {
+            let right_height = 0;
+        }
+    
+        return left_height - right_height;
     }
 
     fn min_value_node(&self, node: AvlTreeNode<T>) -> AvlTreeNode<T> {
-        let mut current = node;
 
-        if node.is_none() | node.left.is_none() {
-            return node;
-        }else{
-            return self.min_value_node(node.left);
-        }
+        //let mut current = node;
+
+        //while current.left is not none{
+
+        //  current = current.left;
+
+        //return current;
     }   
 
 
