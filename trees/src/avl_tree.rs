@@ -1,6 +1,7 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 use crate::tree::*;
+use crate::node::*;
 use std::borrow::{Borrow, BorrowMut};
 
 type MaybeAvlTree<T> = Option<Rc<RefCell<AvlTreeNode<T>>>>;
@@ -164,8 +165,8 @@ impl<T: Ord + std::fmt::Debug + std::fmt::Display>  AvlTreeNode<T> {
     fn get_balance_factor(&self) -> i32 {
 
         //declare left_height and right_height
-        let left_height: i32;
-        let right_height: i32;
+        let left_height: i32=0;
+        let right_height: i32=0;
 
         //borrow and get the left child height
         if let Some(left_node) = self.get_child(Side::Left){
@@ -272,7 +273,7 @@ impl<T: Ord + std::fmt::Debug + std::fmt::Display>  AvlTreeNode<T> {
         //return cur_left;
     }
 
-    fn search(&self,root:AvlTree<T>, key: T) -> AvlTreeNode<T> {
+    //fn search(&self,root:AvlTree<T>, key: T) -> AvlTreeNode<T> {
         
         //let mut current = self.root;
 
@@ -289,7 +290,7 @@ impl<T: Ord + std::fmt::Debug + std::fmt::Display>  AvlTreeNode<T> {
         //  }
 
         //return current;
-    }
+    //}
 
     ///Start from the root and traverse the tree to 
     /// find the node to be deleted
@@ -374,44 +375,6 @@ impl<T: Ord + std::fmt::Debug + std::fmt::Display> AvlTree<T> {
 
     fn set_root(&mut self, node: MaybeAvlTree<T>) {
         self.root = node;
-    }
-
-    pub fn insert(&mut self, key: T) {
-        let root = self.get_root();
-        let new_node = Rc::new(RefCell::new(AvlTreeNode::new(key)));
-        match root {
-            None => {
-                self.set_root(Some(new_node));
-            },
-            Some(_) => {
-                let root = root.unwrap();
-                let mut current = root;
-                loop {
-                    let mut current_borrow = current.borrow_mut();
-                    if key < *current_borrow.get_key() {
-                        match current_borrow.left() {
-                            None => {
-                                current_borrow.set_child(Side::Left, Some(new_node.clone()));
-                                break;
-                            },
-                            Some(_) => {
-                                current = current_borrow.get_child(Side::Left).unwrap();
-                            }
-                        }
-                    } else {
-                        match current_borrow.right() {
-                            None => {
-                                current_borrow.set_child(Side::Right, Some(new_node.clone()));
-                                break;
-                            },
-                            Some(_) => {
-                                current = current_borrow.get_child(Side::Right).unwrap();
-                            }
-                        }
-                    }
-                }
-            }
-        }
     }
 
 }
