@@ -9,6 +9,13 @@ enum NodeColor {
     Black,
 }
 
+// used by print_node_structure to print branches nicely
+enum NodeIsFrom {
+    Left,
+    Right,
+    Neither
+}
+
 type MaybeRedBlackTree<T> = Option<Rc<RefCell<RedBlackTreeNode<T>>>>;
 
 #[derive(Debug)]
@@ -18,7 +25,7 @@ struct RedBlackTreeNode<T> {
     pub parent: MaybeRedBlackTree<T>,
     is_child: Option<Side>,
     left: MaybeRedBlackTree<T>,
-    right: MaybeRedBlackTree<T>,
+   right: MaybeRedBlackTree<T>,
 }
 
 pub struct RedBlackTree<T> {
@@ -105,7 +112,7 @@ impl<T: Ord> Node<T> for RedBlackTreeNode<T> {
 
 }
 
-impl<T: Ord> RedBlackTreeNode<T> {
+impl<T: Ord + std::fmt::Debug + std::fmt::Display> RedBlackTreeNode<T> {
     fn is_red(&self) -> bool {
         self.color == NodeColor::Red
     }
@@ -176,9 +183,64 @@ impl<T: Ord> RedBlackTreeNode<T> {
         else { false }
     }
 
+    fn is_leaf(&self) -> bool {
+        // check left and right pointers to determine if this node is a leaf node
+        if let None = self.left {
+            if let None = self.right {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    fn print_inorder_node(&self) {
+        // function called recursively to traverse nodes in order and print values
+        // if this is a leaf node, print its value
+        if self.is_leaf() {
+            println!("{:?}", self.get_key());
+            return;
+        }
+        // otherwise, first go left for lower values
+        if let Some(ptr) = &self.left {
+            ptr.as_ref().borrow().print_inorder_node();
+        }
+        // then print this node's value
+        println!("{:?}", self.get_key());
+        // then go right for higher values
+        if let Some(ptr) = &self.right {
+            ptr.as_ref().borrow().print_inorder_node();
+        }
+    }
+
+    fn print_structure_node(&self, depth: usize, from: NodeIsFrom) {
+        // first go left...
+        if let Some(ptr) = &self.left {
+            ptr.as_ref().borrow().print_structure_node(depth + 1, NodeIsFrom::Left);            
+        }
+        
+        // print this node with prefix
+        // get R/B as char 
+        let colour = if self.is_red() { 'R' } else { 'B' };
+        // couple characters that make tree look 'smooth'
+        let smooth = match from {
+            NodeIsFrom::Left => "┌───────┘",
+            NodeIsFrom::Neither => "",
+            NodeIsFrom::Right => "└───────┐"
+        };
+        // case for depth to make lines line up nice
+        let space = if depth == 0 { 0 } else { (depth - 1) * 8 };
+        // print line representing this node
+        println!("{: <1$}{2}{3} ({4})", "", space, smooth, self.get_key(), colour);
+        
+        // then go right...
+        if let Some(ptr) = &self.right {
+            ptr.as_ref().borrow().print_structure_node(depth + 1, NodeIsFrom::Right);
+        }
+    }
+
 }
 
-impl<T: Ord + Copy + std::fmt::Debug> RedBlackTree<T> {
+impl<T: Ord + Copy + std::fmt::Debug + std::fmt::Display> RedBlackTree<T> {
     pub fn new() -> Self {
         Self { root: None, size: 0 }
     }
@@ -192,8 +254,10 @@ impl<T: Ord + Copy + std::fmt::Debug> RedBlackTree<T> {
     }
 
     pub fn insert(&mut self, key: T) {
+        // first insert node as though in a BST
         let root = self.get_root();
         let (mut new_root, inserted_node, fix_tree) = bst_insert(root.clone(), key);
+
         if fix_tree {
             new_root = self.insert_fix(inserted_node); // replace with actual fix function
             self.size += 1;
@@ -204,7 +268,7 @@ impl<T: Ord + Copy + std::fmt::Debug> RedBlackTree<T> {
 
     fn climb_to_root(&self, node: Rc<RefCell<RedBlackTreeNode<T>>>) -> Rc<RefCell<RedBlackTreeNode<T>>> {
         let parent = node.as_ref().borrow_mut().get_parent();
-        if parent.is_none() {
+        if parent.is_none() {{}
             node
         } else {
             let mut p = parent.unwrap();
@@ -338,4 +402,30 @@ impl<T: Ord + Copy + std::fmt::Debug> RedBlackTree<T> {
     //     new_root.as_ref().borrow_mut().set_color(NodeColor::Black);
     //     self.set_root(new_root);
     // }
+
+    pub fn print_inorder(&self) {
+        // PART 1.5 print in-order traversal of tree
+        println!("-------- Tree In-Order -------");
+        if let Some(ptr) = &self.root {
+            let root = ptr.as_ref().borrow();
+            root.print_inorder_node();
+        }
+        else {
+            println!("Empty tree");
+        }
+        println!("------------------------------");
+    }
+
+    pub fn print_structure(&self) {
+        // PART 1.7 print tree showing structure and colours
+       println!("------- Tree Structure -------");
+        if let Some(ptr) = &self.root {
+            let root = ptr.as_ref().borrow();
+            root.print_structure_node(0, NodeIsFrom::Neither);
+        }
+        else {
+            println!("Empty tree");
+        }       
+        println!("------------------------------");
+    }
 }
