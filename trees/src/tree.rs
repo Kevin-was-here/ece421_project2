@@ -67,7 +67,7 @@ pub trait Tree<T: Ord + Copy + std::fmt::Debug + std::fmt::Display> {
     fn insert(&mut self, key: T) {
         // first insert node as though in a BST
         let root = self.get_root();
-        let (mut new_root, inserted_node, fix_tree) = bst_insert(root.clone(), key);
+        let (mut new_root, inserted_node, fix_tree) = self.bst_insert(root.clone(), key);
 
         if fix_tree {
             new_root = self.insert_fix(inserted_node);
@@ -78,89 +78,91 @@ pub trait Tree<T: Ord + Copy + std::fmt::Debug + std::fmt::Display> {
     fn delete(&mut self, k: T) {
         // similar to insert
         let root = self.get_root();
-        let (mut new_root, fix_tree) = bst_delete(root.clone(), k); // should return root here 
-        if fix_tree {
-            // new_root = self.delete_fix(inserted_node); // replace with actual fix function
-        }
-        self.set_root(new_root);
+        // let (mut new_root, fix_tree) = self.bst_delete(root.clone(), k); // should return root here 
+        self.bst_delete(root.clone(), k);
+        // if fix_tree {
+        //     // new_root = self.delete_fix(inserted_node); // replace with actual fix function
+        // }
+        // self.set_root(new_root);
     }
-}
 
-pub fn bst_insert<T: Ord + Copy, N: Node<T>>(node: Option<Rc<RefCell<N>>>, k: T) -> (Rc<RefCell<N>>, Rc<RefCell<N>>, bool) {
-    match node {
-        None => {
-            let new_node = N::new(k); 
-            let rc = Rc::new(RefCell::new(new_node)); 
-            (rc.clone(), rc, true)
-        },
-        Some(n) => {
-            let insert_side = insert_side(n.clone(), k);
-            match insert_side {
-                None => (n.clone(), n.clone(), false),
-                Some(side) => {
-                    let mut node = n.as_ref().borrow_mut();
-                    let old_subtree = node.take_child(side);
-                    let (new_subtree, new_node, fix_tree) = bst_insert(old_subtree, k);
-
-                    // update links between current node and its child
-                    node.set_child(side, Some(new_subtree.clone()));
-                    new_subtree.as_ref().borrow_mut().set_parent(Some(side), Some(n.clone())); 
-                    (n.clone(), new_node, fix_tree)
-                },
+    fn bst_find(&self, root: Option<Rc<RefCell<Self::Node>>>, k: T) -> Option<Rc<RefCell<Self::Node>>> {
+        let mut current_node = root;
+        // Find then replace
+        loop {
+            if current_node.is_none() {
+                return None
             }
-        },
-    }
-}
-
-pub fn bst_find<T: Ord + Copy, N: Node<T>>(root: Option<Rc<RefCell<N>>>, k: T) -> Option<Rc<RefCell<N>>> {
-    let mut current_node = root;
-    // Find then replace
-    loop {
-        if current_node.is_none() {
-            return None
-        }
-        let n = current_node.clone().unwrap();
-        if n.as_ref().borrow().equal(k) {
-            return current_node.clone()
-        }
-        else if n.as_ref().borrow().greater(k) {
-            current_node = n.as_ref().borrow().get_child(Side::Left);
-        }
-        else {
-            current_node = n.as_ref().borrow().get_child(Side::Right);
+            let n = current_node.clone().unwrap();
+            if n.as_ref().borrow().equal(k) {
+                return current_node.clone()
+            }
+            else if n.as_ref().borrow().greater(k) {
+                current_node = n.as_ref().borrow().get_child(Side::Left);
+            }
+            else {
+                current_node = n.as_ref().borrow().get_child(Side::Right);
+            }
         }
     }
-}
 
-pub fn bst_delete<T: Ord + Copy, N: Node<T>>(root: Option<Rc<RefCell<N>>>, k: T) {
-    match bst_find(root, k) {
-        None => (),
-        Some(n) => {
-            bst_replace(n);
-        },
+    fn bst_insert(&self, node: Option<Rc<RefCell<Self::Node>>>, k: T) -> (Rc<RefCell<Self::Node>>, Rc<RefCell<Self::Node>>, bool) {
+        match node {
+            None => {
+                let new_node = Self::Node::new(k); 
+                let rc = Rc::new(RefCell::new(new_node)); 
+                (rc.clone(), rc, true)
+            },
+            Some(n) => {
+                let insert_side = self.insert_side(n.clone(), k);
+                match insert_side {
+                    None => (n.clone(), n.clone(), false),
+                    Some(side) => {
+                        let mut node = n.as_ref().borrow_mut();
+                        let old_subtree = node.take_child(side);
+                        let (new_subtree, new_node, fix_tree) = self.bst_insert(old_subtree, k);
+    
+                        // update links between current node and its child
+                        node.set_child(side, Some(new_subtree.clone()));
+                        new_subtree.as_ref().borrow_mut().set_parent(Some(side), Some(n.clone())); 
+                        (n.clone(), new_node, fix_tree)
+                    },
+                }
+            },
+        }
     }
-}
 
-pub fn bst_replace<T: Ord + Copy, N: Node<T>>(node: Rc<RefCell<N>>) {
-    let mut n = node.as_ref().borrow_mut();
-    if n.child_count() == 0 && n.get_parent().is_none() {
-        
-    } else if n.child_count() == 0 && n.get_parent().is_some() {
-
-    } else if n.child_count() == 1 && n.get_child(Side::Left).is_none() {
-
-    } else if n.child_count() == 1 && n.get_child(Side::Right).is_none() {
-
-    } else {}
-}
-
-pub fn insert_side<T: Ord + Copy, N: Node<T>>(node: Rc<RefCell<N>>, k: T) -> Option<Side> {
-    let n = node.as_ref().borrow();
-    if n.greater(k) {
-        Some(Side::Left)
-    } else if n.less(k) {
-        Some(Side::Right)
-    } else {
-        None
+    fn bst_delete(&mut self, root: Option<Rc<RefCell<Self::Node>>>, k: T) {
+        match self.bst_find(root, k) {
+            None => (),
+            Some(n) => {
+                self.bst_replace(n);
+            },
+        }
     }
+
+    fn bst_replace(&mut self, node: Rc<RefCell<Self::Node>>) {
+        let mut n = node.as_ref().borrow_mut();
+        if n.child_count() == 0 && n.get_parent().is_none() {
+            
+        } else if n.child_count() == 0 && n.get_parent().is_some() {
+    
+        } else if n.child_count() == 1 && n.get_child(Side::Left).is_none() {
+    
+        } else if n.child_count() == 1 && n.get_child(Side::Right).is_none() {
+    
+        } else {}
+    }
+    
+    fn insert_side(&self, node: Rc<RefCell<Self::Node>>, k: T) -> Option<Side> {
+        let n = node.as_ref().borrow();
+        if n.greater(k) {
+            Some(Side::Left)
+        } else if n.less(k) {
+            Some(Side::Right)
+        } else {
+            None
+        }
+    }
+    
 }
