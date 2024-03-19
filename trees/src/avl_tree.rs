@@ -15,9 +15,8 @@ struct AvlTreeNode<T> {
     is_child: Option<Side>,
 }
 
-struct AvlTree<T> {
+pub struct AvlTree<T> {
     root: MaybeAvlTree<T>,
-    size: usize,
 }
 
 impl<T: Ord> Traversible<T> for AvlTreeNode<T> {
@@ -65,6 +64,21 @@ impl<T: Ord> Node<T> for AvlTreeNode<T>{
         }
     }
 
+    // check if the node is a left or right child of another node
+    fn is_child(&self, side: Side) -> bool {
+        match &self.is_child {
+            None => false,
+            Some(val) => {
+                if val == &side { true } else { false }
+            }
+        }
+    }
+
+    // if node has a parent, return the side it is on
+    fn get_is_child(&self) -> &Option<Side> {
+        &self.is_child
+    }
+
     fn take_child(&mut self, side: Side) -> MaybeAvlTree<T> {
         match side {
             Side::Left => self.left.take(),
@@ -78,6 +92,52 @@ impl<T: Ord> Node<T> for AvlTreeNode<T>{
             Side::Right => self.right = child,
         }
     }
+
+    
+    fn child_count(&self) -> usize {
+        if self.get_child(Side::Left).is_none() && self.get_child(Side::Left).is_none() {
+            0    
+        } else if self.get_child(Side::Left).is_some() && self.get_child(Side::Right).is_some() {
+            2
+        } else {
+            1
+        }
+    }
+
+    fn is_leaf(&self) -> bool {
+        // check left and right pointers to determine if this node is a leaf node
+        if let None = self.left {
+            if let None = self.right {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+    fn get_sibling(&self) -> MaybeAvlTree<T> {
+        if let Some(p) = self.get_parent() {
+            let parent = p.as_ref().borrow_mut();
+            if self.is_child(Side::Left) {
+                parent.get_child(Side::Right)
+            } else if self.is_child(Side::Right) {
+                parent.get_child(Side::Left)
+            } else { None }
+        }
+        else { None }
+    }
+
+    fn get_uncle(&self) -> MaybeAvlTree<T> {
+        if let Some(p) = self.get_parent() {
+            p.as_ref().borrow().get_sibling()
+        } else { None }
+    } 
+
+    fn get_grandparent(&self) -> MaybeAvlTree<T> {
+        if let Some(p) = self.get_parent() {
+            p.as_ref().borrow().get_parent()
+        } else { None }
+    } 
 
     fn get_parent(&self) -> MaybeAvlTree<T> {
         self.parent.clone()
@@ -296,6 +356,24 @@ impl<T: Ord + std::fmt::Debug + std::fmt::Display>  AvlTreeNode<T> {
         //      return self.left_rotate();
 
         //  return root;
+    }
+
+}
+
+
+impl<T: Ord + std::fmt::Debug + std::fmt::Display> AvlTree<T> {
+    pub fn new() -> Self {
+        Self {
+            root: None,
+        }
+    }
+
+    fn get_root(&self) -> MaybeAvlTree<T> {
+        self.root.clone()
+    }
+
+    fn set_root(&mut self, node: MaybeAvlTree<T>) {
+        self.root = node;
     }
 
 }

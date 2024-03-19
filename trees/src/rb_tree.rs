@@ -134,7 +134,6 @@ impl<T: Ord> Node<T> for RedBlackTreeNode<T> {
         return false;
     }
 
-
     fn get_sibling(&self) -> MaybeRedBlackTree<T> {
         if let Some(p) = self.get_parent() {
             let parent = p.as_ref().borrow_mut();
