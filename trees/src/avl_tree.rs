@@ -376,4 +376,42 @@ impl<T: Ord + std::fmt::Debug + std::fmt::Display> AvlTree<T> {
         self.root = node;
     }
 
+    pub fn insert(&mut self, key: T) {
+        let root = self.get_root();
+        let new_node = Rc::new(RefCell::new(AvlTreeNode::new(key)));
+        match root {
+            None => {
+                self.set_root(Some(new_node));
+            },
+            Some(_) => {
+                let root = root.unwrap();
+                let mut current = root;
+                loop {
+                    let mut current_borrow = current.borrow_mut();
+                    if key < *current_borrow.get_key() {
+                        match current_borrow.left() {
+                            None => {
+                                current_borrow.set_child(Side::Left, Some(new_node.clone()));
+                                break;
+                            },
+                            Some(_) => {
+                                current = current_borrow.get_child(Side::Left).unwrap();
+                            }
+                        }
+                    } else {
+                        match current_borrow.right() {
+                            None => {
+                                current_borrow.set_child(Side::Right, Some(new_node.clone()));
+                                break;
+                            },
+                            Some(_) => {
+                                current = current_borrow.get_child(Side::Right).unwrap();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
 }
