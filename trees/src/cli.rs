@@ -94,7 +94,7 @@ fn rb_loop() {
                 let mut node_val = 0;
                 get_i32(&mut node_val);
                 // tree.delete(node_val);
-                println!("> Not yet implemented.\n");
+                println!("> This feature is not yet implemented.\n");
             }
             3u32 => {
                 // count leaves
@@ -103,8 +103,8 @@ fn rb_loop() {
             }
             4u32 => {
                 // hright
-                // let height = tree.height();
-                println!("> Not yet implemented.\n");
+                let height = tree.get_height();
+                println!("> Height: {height}\n\n");
             }
             5u32 => {
                 tree.print_inorder();
@@ -131,6 +131,7 @@ fn rb_loop() {
 }
 
 pub fn run_cli() {
+    // choose a type of tree
 
     loop {
         let mut c = 0;
@@ -142,7 +143,7 @@ pub fn run_cli() {
             rb_loop();
         }
         else if c == 2u32 {
-            println!("> Not yet implemented.\n")
+            println!("> This feature is not yet implemented.\n");
             // avl_loop();
         }
         else {

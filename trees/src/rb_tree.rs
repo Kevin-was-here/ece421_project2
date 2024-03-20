@@ -269,6 +269,24 @@ impl<T: Ord + std::fmt::Debug + std::fmt::Display> RedBlackTreeNode<T> {
         }
         return count;
     }
+
+    fn get_height_node(&self, depth: usize) -> usize {
+        // recursive helper function for get_height of tree
+        if self.is_leaf() {
+            return depth;
+        }
+        // find max depth of either branch
+        let mut m: usize = usize::MIN;
+        // otherwise, first go left for lower values
+        if let Some(ptr) = &self.left {
+            m = std::cmp::max(m, ptr.as_ref().borrow().get_height_node(depth + 1));
+        }
+        // then go right for higher values
+        if let Some(ptr) = &self.right {
+            m = std::cmp::max(m, ptr.as_ref().borrow().get_height_node(depth + 1));
+        }
+        return m;
+    }
 }
 
 impl<T: Ord + Copy + std::fmt::Debug + std::fmt::Display> Tree<T> for RedBlackTree<T> {
@@ -441,6 +459,17 @@ where
             return false;
         }
     } 
+
+    pub fn get_height(&self) -> usize {
+        // PART 1.4 get height of tree
+        if let Some(ptr) = &self.root {
+            let root: std::cell::Ref<'_, RedBlackTreeNode<T>> = ptr.as_ref().borrow();
+            return root.get_height_node(1);
+        }
+        else {
+            return 0;
+        }
+    }
 
     // traverse up the tree from the given node and return the root
     fn climb_to_root(&self, node: Rc<RefCell<RedBlackTreeNode<T>>>) -> Rc<RefCell<RedBlackTreeNode<T>>> {
