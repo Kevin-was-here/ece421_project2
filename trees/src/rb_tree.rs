@@ -166,6 +166,14 @@ impl<T: Ord> Node<T> for RedBlackTreeNode<T> {
         self.is_child = is_child;
     }   
 
+    fn get_height(&self) -> usize {
+        (unimplemented!())
+    }
+
+    fn set_height(&mut self, height: usize) {
+        (unimplemented!())
+    }
+
 }
 
 impl<T: Ord + std::fmt::Debug + std::fmt::Display> RedBlackTreeNode<T> {
@@ -356,6 +364,8 @@ impl<T: Ord + Copy + std::fmt::Debug + std::fmt::Display> Tree<T> for RedBlackTr
         }   
     }
 
+    // fn delete_fix(&mut self, )
+
 }
 
 impl<T> RedBlackTree<T> 
@@ -387,24 +397,72 @@ where
         }       
         println!("------------------------------");
     }
-    // traverse up the tree from the given node and return the root
-    // fn climb_to_root(&self, node: Rc<RefCell<RedBlackTreeNode<T>>>) -> Rc<RefCell<RedBlackTreeNode<T>>> {
-    //     let parent = node.as_ref().borrow().get_parent();
-    //     if parent.is_none() {{}
-    //         node
-    //     } else {
-    //         let mut p = parent.unwrap();
-    //         let mut not_root = true;
-    //         while not_root {
-    //             let temp = p;
-    //             not_root = temp.as_ref().borrow().get_parent().is_some();
-    //             p = temp;
-    //         }
-    //         p
-    //     }
-    // }
 
-    
+    fn delete(&mut self, k: T) {
+        let result = self.bst_find(self.get_root().clone(), k);
+        if result.is_none() {
+            return;
+        }
+
+        let node = result.unwrap();
+        let deleted_color;
+        let moved_up_node;
+
+        if self.left(node.clone()).is_none() || self.right(node.clone()).is_none() {
+            moved_up_node = self.replace(node.clone());
+            deleted_color = node.as_ref().borrow().get_color();
+        } else {
+            let right_child = self.right(node.clone()).unwrap();
+            let successor = self.find_min(right_child.clone());
+            let new_key = self.get_key(successor.clone());
+            self.set_key(node.clone(), new_key);
+            moved_up_node = self.replace(successor.clone());
+            deleted_color = successor.as_ref().borrow().get_color();
+        }
+
+        if deleted_color == NodeColor::Black {
+            self.delete_fix(moved_up_node.clone());
+        }
+    }
+
+    fn replace(&mut self, node: Rc<RefCell<RedBlackTreeNode<T>>>) -> Option<Rc<RefCell<RedBlackTreeNode<T>>>> {
+        if let Some(child) = self.left(node.clone())  {
+            let parent = self.get_parent(node.clone());
+            self.replace_parent_child(parent.clone(), node.clone(), Some(child.clone()));
+            Some(child.clone())
+        } else if let Some(child) = self.right(node.clone())  {
+            let parent = self.get_parent(node.clone());
+            self.replace_parent_child(parent.clone(), node.clone(), Some(child.clone()));
+            Some(child.clone())
+        } else {
+            None
+        }
+    }
+
+    fn delete_fix(&mut self, node: Option<Rc<RefCell<RedBlackTreeNode<T>>>>) {
+
+    }
+
+    fn equal(&self, a: Rc<RefCell<RedBlackTreeNode<T>>>, b: Rc<RefCell<RedBlackTreeNode<T>>>) -> bool {
+        let b_key = self.get_key(b.clone());
+        a.as_ref().borrow().equal(b_key)
+    }
+
+    fn replace_parent_child(&mut self, parent: MaybeRedBlackTree<T>, node: Rc<RefCell<RedBlackTreeNode<T>>>, child: MaybeRedBlackTree<T>) {
+        match parent.clone() {
+            None => {
+                self.set_root(child.clone());
+            },
+            Some(p) => {
+                let node_side = self.get_is_child(node.clone()).unwrap();
+                self.set_child(p.clone(), node_side, child.clone());
+                if child.is_some() {
+                    self.set_parent(child.unwrap().clone(), node_side, parent.clone());
+                }
+            }
+        }
+    }
+
     fn rotate_ins(&mut self, node: Rc<RefCell<RedBlackTreeNode<T>>>) {
         let node_side;
         let parent_side;

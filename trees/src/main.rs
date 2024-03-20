@@ -1,10 +1,10 @@
 mod rb_tree;
-//mod avl_tree;
+mod avl_tree;
 mod tree;
 mod node;
 use crate::rb_tree::*;
 use crate::tree::*;
-//use crate::avl_tree::*;
+use crate::avl_tree::*;
 
 fn main() {
     let mut tree = RedBlackTree::new();
@@ -35,5 +35,10 @@ fn main() {
     tree2.print_structure();
 
    // let mut avl:AvlTree<i32> = AvlTree::new();
-    // let mut avl:AvlTree<i32> = AvlTree::new();
+    // avl.insert(3);
+    // avl.insert(1);
+    // avl.insert(2);
+    // avl.insert(5);
+    // avl.insert(4);
+    // avl.insert(6);
 }
