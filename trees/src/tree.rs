@@ -3,6 +3,7 @@ use std::cell::RefCell;
 use std::iter::{successors, Successors};
 use std::rc::Rc;
 use super::node::*;
+use std::cmp::max;
 
 pub trait Tree<T: Ord + Copy + std::fmt::Debug + std::fmt::Display> {
     type Node: Node<T>;
@@ -221,6 +222,28 @@ pub trait Tree<T: Ord + Copy + std::fmt::Debug + std::fmt::Display> {
             None => node.clone(),
             Some(child) => self.find_min(n.left().clone().unwrap().clone()),
         }
+    }
+
+    fn set_height(&self, node: Rc<RefCell<Self::Node>>) {
+        //given the node, calculate the height of the node and set it in the node
+        if self.is_leaf(node.clone()){
+            node.as_ref().borrow_mut().set_height(0);
+        } else {
+            let left_height = match self.get_child(node.clone(), Side::Left) {
+                None => 0,
+                Some(child) => self.get_height(child.clone()),
+            };
+            let right_height = match self.get_child(node.clone(), Side::Right) {
+                None => 0,
+                Some(child) => self.get_height(child.clone()),
+            };
+            let height = max(left_height, right_height) + 1;
+            node.as_ref().borrow_mut().set_height(height);
+        }
+    }
+
+    fn get_height(&self, node: Rc<RefCell<Self::Node>>) -> usize {
+        node.as_ref().borrow().get_height()
     }
     
 }

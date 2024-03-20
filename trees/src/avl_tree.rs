@@ -1,54 +1,66 @@
-// use std::cell::RefCell;
-// use std::rc::Rc;
-// use crate::tree::*;
-// use crate::node::*;
-// use std::borrow::{Borrow, BorrowMut};
+use std::cell::RefCell;
+use std::rc::Rc;
+use crate::tree::*;
+use crate::node::*;
+use std::borrow::{Borrow, BorrowMut};
 
-// type MaybeAvlTree<T> = Option<Rc<RefCell<AvlTreeNode<T>>>>;
+type MaybeAvlTree<T> = Option<Rc<RefCell<AvlTreeNode<T>>>>;
 
-// #[derive(Debug)]
-// struct AvlTreeNode<T> {
-//     pub key: T,
-//     pub parent: MaybeAvlTree<T>,
-//     pub height: i32,
-//     left: MaybeAvlTree<T>,
-//     right: MaybeAvlTree<T>,
-//     is_child: Option<Side>,
-// }
+#[derive(Debug)]
+pub struct AvlTreeNode<T> {
+    pub key: T,
+    pub parent: MaybeAvlTree<T>,
+    pub height: usize,
+    pub left: MaybeAvlTree<T>,
+    pub right: MaybeAvlTree<T>,
+    pub is_child: Option<Side>,
+}
 
-// pub struct AvlTree<T> {
-//     root: MaybeAvlTree<T>,
-// }
+pub struct AvlTree<T> {
+    root: MaybeAvlTree<T>,
+}
 
-// impl<T: Ord> Traversible<T> for AvlTreeNode<T> {
-//     fn left(&self) -> &Option<Rc<RefCell<Self>>> {
-//         return &self.left;
-//     }
-//     fn right(&self) -> &Option<Rc<RefCell<Self>>> {
-//         return &self.right;
-//     }
-// }
+impl<T: Ord> Traversible<T> for AvlTreeNode<T> {
+    fn left(&self) -> &Option<Rc<RefCell<Self>>> {
+        return &self.left;
+    }
+    fn right(&self) -> &Option<Rc<RefCell<Self>>> {
+        return &self.right;
+    }
+}
 
-// impl<T: Ord> Node<T> for AvlTreeNode<T>{
+impl<T: Ord> Node<T> for AvlTreeNode<T>{
 
-//     fn new(key: T) -> Self {
-//         Self{
-//             key: key,
-//             left: None,
-//             right: None,
-//             parent: None,
-//             height: 1,
-//             is_child: None,
-//             }
-//     }
+    fn new(key: T) -> Self {
+        Self{
+            key: key,
+            left: None,
+            right: None,
+            parent: None,
+            height: 1,
+            is_child: None,
+            }
+    }
 
-//     fn get_key(&self) -> &T {
-//         &self.key
-//     }
+    fn get_key(&self) -> &T {
+        &self.key
+    }
 
-//     fn greater(&self, val: T) -> bool {
-//         self.key > val
-//     }
+    fn set_key(&mut self, val: T) {
+        self.key = val;
+    }
+
+    fn set_height(&mut self, height: usize) {
+        self.height = height;
+    }
+
+    fn get_height(&self) -> usize {
+        self.height
+    }
+
+    fn greater(&self, val: T) -> bool {
+        self.key > val
+    }
 
 //     fn equal(&self, val: T) -> bool {
 //         self.key == val
@@ -152,7 +164,7 @@
 //         self.parent = parent;
 //         self.is_child = is_child;
 //     }   
-// }
+}
 
 // impl<T: Ord + std::fmt::Debug + std::fmt::Display>  AvlTreeNode<T> {
 
