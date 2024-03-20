@@ -40,7 +40,14 @@ fn test() {
     tree2.print_inorder();
     tree2.print_structure();
     println!("num leaves: {}", tree2.count_leaves());    
-   // let mut avl:AvlTree<i32> = AvlTree::new();
+   
+    let mut avl:AvlTree<i32> = AvlTree::new();
+    avl.insert(2);
+    avl.insert(4);
+    avl.insert(1);
+    avl.insert(5);
+    avl.insert(6);
+    println!("AVL");
 }
 
 fn main() {
