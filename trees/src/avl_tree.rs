@@ -270,7 +270,7 @@ T: Ord + Copy + std::fmt::Debug + std::fmt::Display
        println!("------- Tree Structure -------");
         if let Some(ptr) = &self.root {
             let root = ptr.as_ref().borrow();
-            root.print_structure_node(0, NodeIsFrom::Neither);
+            //root.print_structure_node(0, NodeIsFrom::Neither);
         }
         else {
             println!("Empty tree");
