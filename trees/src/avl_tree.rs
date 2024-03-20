@@ -174,21 +174,21 @@ impl<T: Ord + std::fmt::Debug + std::fmt::Display >  AvlTreeNode<T> {
     }
 
     // Helper function to get the balance factor of a node.
-    fn get_balance_factor(&self) -> usize {
+    fn get_balance_factor(&self) -> i8 {
 
         //declare left_height and right_height
-        let mut left_height: usize = 0;
-        let mut right_height: usize = 0;
+        let mut left_height: i8 = 0;
+        let mut right_height: i8 = 0;
 
         if let Some(left) = self.get_child(Side::Left){
-            left_height = left.as_ref().borrow().get_height();
+            left_height = (left.as_ref().borrow().get_height()) as i8;
         }else{left_height = 0;}
 
         if let Some(right) = self.get_child(Side::Right){
-            right_height = right.as_ref().borrow().get_height();
+            right_height = (right.as_ref().borrow().get_height()) as i8;
         }else{right_height = 0;}
     
-        return left_height - right_height;
+        return (left_height - right_height);
     }
 
     fn print_inorder_node(&self) {
@@ -240,13 +240,96 @@ impl<T: Ord + Copy + std::fmt::Debug + std::fmt::Display> Tree<T> for AvlTree<T>
     }
 
     fn insert_fix(&mut self, node: Rc<RefCell<AvlTreeNode<T>>>) -> Rc<RefCell<AvlTreeNode<T>>> {
-        unimplemented!()
+        //This function runs after a node is inserted, we're given the node that is inserted
+        //We need to check if the tree is balanced and if not, fix it
+
+        //First, we need to update the height of the node and all of its ancestors
+        let mut current_node = node.clone();
+        loop {
+            let mut n = current_node.as_ref().borrow_mut();
+            n.update_height();
+            if let Some(p) = n.get_parent() {
+                drop(n);
+                current_node = p;
+            } else {
+                break;
+            }
+        }
+        //Drop current node to release the mutable borrow
+        drop (current_node);
+        
+        //Next, we need to check if the tree is balanced
+        //check balancing factor of the node and its acestors
+        let mut current_node = node.clone();
+        loop{
+            let mut n = current_node.as_ref().borrow_mut();
+            let balance_factor = n.get_balance_factor();
+            println!("For node {} Balance factor: {}", n.key, balance_factor);
+            if balance_factor > 1 || balance_factor < -1 {
+                //Tree is unbalanced, we need to fix it
+                println!("Tree is unbalanced, fixing it");
+
+                //check for which of the 4 cases the tree is unbalanced
+
+                //case 1: bf > 1 and key value of node is less than key value of left child
+                if balance_factor > 1 && 
+                n.get_child(Side::Left).as_ref().unwrap().as_ref().borrow().greater(n.key){
+                    println!("Case 1: Right rotation");
+                    //self.rotate(Side::Right, current_node.clone());
+                }
+                
+                //case 2: bf > 1 and key value of node is greater than key value of left child
+                if balance_factor > 1 &&
+                n.get_child(Side::Left).as_ref().unwrap().as_ref().borrow().less(n.key){
+                    println!("Case 2: Left-Right rotation");
+                    //self.rotate(Side::Left, n.get_child(Side::Left).as_ref().unwrap().clone());
+                    //self.rotate(Side::Right, current_node.clone());
+                }
+
+                //case 3: bf < -1 and key value of node is greater than key value of right child
+                if balance_factor < -1 &&
+                n.get_child(Side::Right).as_ref().unwrap().as_ref().borrow().less(n.key){
+                    println!("Case 3: Left rotation");
+                    //self.rotate(Side::Left, current_node.clone());
+                }
+
+                //case 4: bf < -1 and key value of node is less than key value of right child
+                if balance_factor < -1 &&
+                n.get_child(Side::Right).as_ref().unwrap().as_ref().borrow().greater(n.key){
+                    println!("Case 4: Right-Left rotation");
+                    //self.rotate(Side::Right, n.get_child(Side::Right).as_ref().unwrap().clone());
+                    //self.rotate(Side::Left, current_node.clone());
+                }
+
+            }
+
+            if let Some(p) = n.get_parent() {
+                drop(n);
+                current_node = p;
+            } else {
+                break;
+            }
+        }
+
+
+
+        //lets return root of the node 
+        drop(current_node);
+        let mut current_node = node.clone();
+        let temp_clone = current_node.clone();
+        let a = current_node.as_ref().borrow_mut();
+        let not_root = a.get_parent().is_some();
+        drop(a);
+        let root = if not_root { self.climb_to_root(temp_clone) } else { temp_clone };
+
+        root
     }
 
     fn rotate(&mut self, side: Side, node: Rc<RefCell<AvlTreeNode<T>>>) {
         unimplemented!()
     }
 }
+
 
 impl<T> AvlTree<T>
 where
