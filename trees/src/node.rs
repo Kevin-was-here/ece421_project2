@@ -29,8 +29,8 @@ pub trait Traversible<T> {
 pub trait Node<T>: Traversible<T> {
     fn new(key: T) -> Self;
     fn get_key(&self) -> &T; 
-    fn set_key(&mut self, key: T);
-    
+    fn set_key(&mut self, val: T);
+
     fn greater(&self, val: T) -> bool;
     fn equal(&self, val: T) -> bool;
     fn less(&self, val: T) -> bool;
@@ -40,7 +40,6 @@ pub trait Node<T>: Traversible<T> {
     fn is_child(&self, side: Side) -> bool;
     fn take_child(&mut self, side: Side) -> Option<Rc<RefCell<Self>>>;
     fn set_child(&mut self, side: Side, node: Option<Rc<RefCell<Self>>>);
-    fn child_count(&self) -> usize;
 
     fn set_parent(&mut self, is_child: Option<Side>, node: Option<Rc<RefCell<Self>>>);
     fn get_parent(&self) -> Option<Rc<RefCell<Self>>>;

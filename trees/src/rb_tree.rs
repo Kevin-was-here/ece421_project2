@@ -1,5 +1,5 @@
-use crate::tree::*;
-use crate::node::*;
+use super::tree::*;
+use super::node::*;
 use std::borrow::{Borrow, BorrowMut};
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -64,8 +64,8 @@ impl<T: Ord> Node<T> for RedBlackTreeNode<T> {
         &self.key
     }
 
-    fn set_key(&mut self, key: T) {
-        self.key = key;
+    fn set_key(&mut self, val: T) {
+        self.key = val;
     }
 
     fn greater(&self, val: T) -> bool {
@@ -115,16 +115,6 @@ impl<T: Ord> Node<T> for RedBlackTreeNode<T> {
         match side {
             Side::Left => self.left = child,
             Side::Right => self.right = child,
-        }
-    }
-
-    fn child_count(&self) -> usize {
-        if self.get_child(Side::Left).is_none() && self.get_child(Side::Left).is_none() {
-            0    
-        } else if self.get_child(Side::Left).is_some() && self.get_child(Side::Right).is_some() {
-            2
-        } else {
-            1
         }
     }
 
@@ -366,18 +356,6 @@ impl<T: Ord + Copy + std::fmt::Debug + std::fmt::Display> Tree<T> for RedBlackTr
         }   
     }
 
-    // fn delete(&mut self, k: T) {
-        // similar to insert
-        // let root = self.get_root();
-        // bst_delete(root.clone(), k); // should return root here 
-        // if fix_tree {
-        //     // new_root = self.delete_fix(inserted_node); // replace with actual fix function
-        //     self.size -= 1;
-        // }
-        // new_root.as_ref().borrow_mut().set_color(NodeColor::Black);
-        // self.set_root(new_root);
-    // }
-
 }
 
 impl<T> RedBlackTree<T> 
@@ -410,21 +388,21 @@ where
         println!("------------------------------");
     }
     // traverse up the tree from the given node and return the root
-    fn climb_to_root(&self, node: Rc<RefCell<RedBlackTreeNode<T>>>) -> Rc<RefCell<RedBlackTreeNode<T>>> {
-        let parent = node.as_ref().borrow().get_parent();
-        if parent.is_none() {{}
-            node
-        } else {
-            let mut p = parent.unwrap();
-            let mut not_root = true;
-            while not_root {
-                let temp = p;
-                not_root = temp.as_ref().borrow().get_parent().is_some();
-                p = temp;
-            }
-            p
-        }
-    }
+    // fn climb_to_root(&self, node: Rc<RefCell<RedBlackTreeNode<T>>>) -> Rc<RefCell<RedBlackTreeNode<T>>> {
+    //     let parent = node.as_ref().borrow().get_parent();
+    //     if parent.is_none() {{}
+    //         node
+    //     } else {
+    //         let mut p = parent.unwrap();
+    //         let mut not_root = true;
+    //         while not_root {
+    //             let temp = p;
+    //             not_root = temp.as_ref().borrow().get_parent().is_some();
+    //             p = temp;
+    //         }
+    //         p
+    //     }
+    // }
 
     
     fn rotate_ins(&mut self, node: Rc<RefCell<RedBlackTreeNode<T>>>) {
