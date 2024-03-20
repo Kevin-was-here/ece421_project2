@@ -26,9 +26,9 @@ pub trait Traversible<T> {
     fn left(&self) -> &Option<Rc<RefCell<Self>>>;
     fn right(&self) -> &Option<Rc<RefCell<Self>>>;
 }
-pub trait Node<T>: Traversible<T> {
+pub trait Node<T: Clone>: Traversible<T> {
     fn new(key: T) -> Self;
-    fn get_key(&self) -> &T; 
+    fn get_key(&self) -> T; 
     fn set_key(&mut self, val: T);
 
     fn greater(&self, val: T) -> bool;
@@ -51,6 +51,4 @@ pub trait Node<T>: Traversible<T> {
     
     fn is_leaf(&self) -> bool;
 
-    fn set_height(&mut self, height: usize);
-    fn get_height(&self) -> usize;
 }

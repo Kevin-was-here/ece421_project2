@@ -13,45 +13,58 @@ pub trait Tree<T: Ord + Copy + std::fmt::Debug + std::fmt::Display> {
     // fn get_height(&self) -> usize;
     // fn is_empty(&self) -> bool;
     fn insert_fix(&mut self, node: Rc<RefCell<Self::Node>>) -> Rc<RefCell<Self::Node>>;
+    // fn insert_fix(&mut self, node: Rc<RefCell<Self::Node>>);
     // fn delete_fix(&mut self, node: Rc<RefCell<Self::Node>>);   
 
     fn rotate(&mut self, side: Side, node: Rc<RefCell<Self::Node>>);
-    
+
     fn insert(&mut self, key: T) {
         // first insert node as though in a BST
-        let root = self.get_root();
-        let (mut new_root, inserted_node, fix_tree) = self.bst_insert(root.clone(), key);
+        let root = self.get_root().clone();
+        let new_node = self.bst_insert(root.clone(), key);
+        let new_root = match new_node.clone() {
+            None => root.clone(),
+            Some(n) => Some(self.insert_fix(new_node.clone().unwrap()).clone()),
+        };
+        // if new_node.is_some() {
+        //     let new_root = self.insert_fix(new_node.clone().unwrap());
+        // }
+        self.set_root(new_root.clone());
+    }
 
-        if fix_tree {
-            new_root = self.insert_fix(inserted_node);
+    fn bst_insert(&mut self, root: Option<Rc<RefCell<Self::Node>>>, k: T) ->  Option<Rc<RefCell<Self::Node>>> {
+        let mut node = root.clone();
+        let mut parent = None;
+        let mut n;
+        
+        while node.is_some() {
+            parent = node.clone();
+            n = node.clone().unwrap();
+            if n.as_ref().borrow().greater(k) {
+                node = self.left(n.clone());
+            } else if n.as_ref().borrow().less(k) {
+                node = self.right(n.clone());
+            } else {
+                return None
+            } 
         }
-        self.set_root(Some(new_root.clone()));
-    } 
 
-    fn bst_insert(&self, node: Option<Rc<RefCell<Self::Node>>>, k: T) -> (Rc<RefCell<Self::Node>>, Rc<RefCell<Self::Node>>, bool) {
-        match node {
-            None => {
-                let new_node = Self::Node::new(k); 
-                let rc = Rc::new(RefCell::new(new_node)); 
-                (rc.clone(), rc, true)
-            },
-            Some(n) => {
-                let insert_side = self.insert_side(n.clone(), k);
-                match insert_side {
-                    None => (n.clone(), n.clone(), false),
-                    Some(side) => {
-                        let mut node = n.as_ref().borrow_mut();
-                        let old_subtree = node.take_child(side);
-                        let (new_subtree, new_node, fix_tree) = self.bst_insert(old_subtree, k);
-    
-                        // update links between current node and its child
-                        node.set_child(side, Some(new_subtree.clone()));
-                        new_subtree.as_ref().borrow_mut().set_parent(Some(side), Some(n.clone())); 
-                        (n.clone(), new_node, fix_tree)
-                    },
-                }
-            },
+        let rc = Some(Rc::new(RefCell::new(Self::Node::new(k))));
+        let new_node = rc.clone().unwrap();
+        if parent.is_none() {
+            self.set_root(rc.clone());
+        } else {
+            let p_ptr = parent.clone().unwrap();
+            let mut p = p_ptr.as_ref().borrow_mut();
+            if p.greater(k) {
+                p.set_child(Side::Left, rc.clone());
+                new_node.as_ref().borrow_mut().set_parent(Some(Side::Left), parent.clone());
+            } else {
+                p.set_child(Side::Right, rc.clone());
+                new_node.as_ref().borrow_mut().set_parent(Some(Side::Right), parent.clone());
+            }
         }
+        rc.clone()
     }
 
     fn bst_find(&self, root: Option<Rc<RefCell<Self::Node>>>, k: T) -> Option<Rc<RefCell<Self::Node>>> {
@@ -73,97 +86,6 @@ pub trait Tree<T: Ord + Copy + std::fmt::Debug + std::fmt::Display> {
             }
         }
     }
-
-    // fn bst_delete(&mut self, root: Option<Rc<RefCell<Self::Node>>>, k: T) -> (Option<Rc<RefCell<Self::Node>>>, Option<Rc<RefCell<Self::Node>>>, bool) {
-    //     match self.bst_find(root.clone(), k) {
-    //         None => (root.clone(), None, false),
-    //         Some(n) => {
-    //             let successor = self.bst_replace(n.clone());
-    //             match successor.clone() {
-    //                 None => (self.get_root().clone(), None, true),
-    //                 Some(s) => {
-    //                     let temp = s.clone();
-    //                     let root = self.climb_to_root(temp);
-    //                     (Some(root.clone()), successor.clone(), true)
-    //                 }
-    //             }   
-    //         },
-    //     }
-    // }
-
-    // return successor
-    // fn bst_replace(&mut self, node: Rc<RefCell<Self::Node>>) -> Option<Rc<RefCell<Self::Node>>> {
-    //     // let mut n = node.as_ref().borrow_mut();
-    //     let is_root = self.get_parent(node.clone()).is_none();
-    //     let successor = self.find_successor(node.clone());
-
-    //     // update parent
-    //     if is_root {
-    //         self.set_root(successor.clone());
-    //     } else {
-    //         let parent= self.get_parent(node.clone()).unwrap();
-    //         let node_side = self.get_is_child(node.clone());
-    //         parent.as_ref().borrow_mut().set_child(node_side.unwrap(), successor.clone());
-    //         match successor.clone() {
-    //             None => {},
-    //             Some(n) => {
-    //                 successor.clone().unwrap().as_ref().borrow_mut().set_parent(node_side, Some(parent.clone()));
-    //             }
-    //         }
-
-    //     }
-
-    //     successor.clone()
-
-    // }
-
-    // fn find_successor(&mut self, node: Rc<RefCell<Self::Node>>) -> Option<Rc<RefCell<Self::Node>>> {
-    //     if self.is_leaf(node.clone()) {
-    //         None
-
-    //     } else if self.get_child(node.clone(), Side::Left).is_none() && self.get_child(node.clone(), Side::Right).is_some() {
-
-    //         self.take_child(node.clone(), Side::Right).clone()
-            
-    //     } else if self.get_child(node.clone(), Side::Left).is_none() && self.get_child(node.clone(), Side::Right).is_none() {
-
-    //         self.take_child(node.clone(), Side::Left).clone()
-
-    //     } else {
-    //         // let (min_val, min_right_child, min_parent_ptr, node_key, min_ptr) = {
-    //         //     let right = self.right(node.clone()).unwrap();
-    //         //     let min_ptr = self.find_min(right);
-    //         //     let min_val = self.get_key(min_ptr.clone());
-    //         //     let min_parent_ptr = self.get_parent(min_ptr.clone()).unwrap();
-    //         //     let min_right_child = self.right(min_ptr.clone());
-    //         //     let node_key = self.get_key(node.clone()).clone();
-
-    //         //     (min_val, min_right_child, min_parent_ptr, node_key, min_ptr)
-    //         // };
-
-    //         // {
-    //         //     let mut min_parent = min_parent_ptr.as_ref().borrow_mut();
-
-    //         //     if min_parent.equal(node_key.clone()) {
-    //         //         min_parent.set_child(Side::Right, min_right_child.clone());
-    //         //     } else {
-    //         //         min_parent.set_child(Side::Left, min_right_child.clone());
-    //         //     }
-    //         // } 
-    //         let (min_val, min_ptr) = {
-    //             let right = self.right(node.clone()).unwrap();
-    //             let min_ptr = self.find_min(right);
-    //             let min_val = self.get_key(min_ptr.clone());
-    //             (min_val, min_ptr)
-    //         };
-    //         self.set_key(node.clone(), min_val.clone());
-    //         let m = min_ptr.clone();
-    //         let (_, successor, _) = self.bst_delete(Some(m), min_val);
-
-    //         successor.clone()
-    //     }
-    // }
-
 
     fn get_parent(&self, node: Rc<RefCell<Self::Node>>) -> Option<Rc<RefCell<Self::Node>>> {
         node.as_ref().borrow().get_parent().clone()
@@ -206,8 +128,8 @@ pub trait Tree<T: Ord + Copy + std::fmt::Debug + std::fmt::Display> {
     }
 
     
-    fn set_parent(&self, child: Rc<RefCell<Self::Node>>, side: Side, parent: Option<Rc<RefCell<Self::Node>>>) {
-        child.as_ref().borrow_mut().set_parent(Some(side), parent.clone());
+    fn set_parent(&self, child: Rc<RefCell<Self::Node>>, side: Option<Side>, parent: Option<Rc<RefCell<Self::Node>>>) {
+        child.as_ref().borrow_mut().set_parent(side, parent.clone());
     }
 
     fn insert_side(&self, node: Rc<RefCell<Self::Node>>, k: T) -> Option<Side> {
@@ -236,28 +158,6 @@ pub trait Tree<T: Ord + Copy + std::fmt::Debug + std::fmt::Display> {
             None => node.clone(),
             Some(child) => self.find_min(n.left().clone().unwrap().clone()),
         }
-    }
-
-    fn set_height(&self, node: Rc<RefCell<Self::Node>>) {
-        //given the node, calculate the height of the node and set it in the node
-        if self.is_leaf(node.clone()){
-            node.as_ref().borrow_mut().set_height(0);
-        } else {
-            let left_height = match self.get_child(node.clone(), Side::Left) {
-                None => 0,
-                Some(child) => self.get_height(child.clone()),
-            };
-            let right_height = match self.get_child(node.clone(), Side::Right) {
-                None => 0,
-                Some(child) => self.get_height(child.clone()),
-            };
-            let height = max(left_height, right_height) + 1;
-            node.as_ref().borrow_mut().set_height(height);
-        }
-    }
-
-    fn get_height(&self, node: Rc<RefCell<Self::Node>>) -> usize {
-        node.as_ref().borrow().get_height()
     }
     
 }
