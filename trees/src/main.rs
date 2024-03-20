@@ -20,6 +20,7 @@ fn main() {
     println!("Done");
     tree.insert(6);
     println!("Done");
+    tree.delete(4);
 
     tree.print_inorder();
     tree.print_structure();
