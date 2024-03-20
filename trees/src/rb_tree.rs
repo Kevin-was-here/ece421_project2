@@ -440,6 +440,17 @@ where
         } else {
             return false;
         }
+    }
+
+    pub fn insert(&mut self, key: T) {
+        // first insert node as though in a BST
+        let root = self.get_root();
+        let (mut new_root, inserted_node, fix_tree) = bst_insert(root.clone(), key);
+
+        if fix_tree {
+            new_root = self.insert_fix(inserted_node); // replace with actual fix function
+            // self.size += 1;
+        }
     } 
 
     // traverse up the tree from the given node and return the root
@@ -501,5 +512,4 @@ where
             n.get_uncle().unwrap().as_ref().borrow_mut().set_color(NodeColor::Black);
         }
     }
-
 }

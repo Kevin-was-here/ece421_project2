@@ -34,6 +34,7 @@ fn test() {
     tree2.insert('d');
     tree2.insert('c');
     tree2.insert('v');
+    
     tree2.print_inorder();
     tree2.print_structure();
     println!("num leaves: {}", tree2.count_leaves());    
