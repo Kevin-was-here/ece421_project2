@@ -30,6 +30,7 @@ fn main() {
     tree2.insert('d');
     tree2.insert('c');
     tree2.insert('v');
+    tree2.delete('c');
     tree2.print_inorder();
     tree2.print_structure();
 

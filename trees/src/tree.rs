@@ -12,7 +12,7 @@ pub trait Tree<T: Ord + Copy + std::fmt::Debug + std::fmt::Display> {
     // fn get_height(&self) -> usize;
     // fn is_empty(&self) -> bool;
     fn insert_fix(&mut self, node: Rc<RefCell<Self::Node>>) -> Rc<RefCell<Self::Node>>;
-    // fn delete_fix(&mut self, key: T);   
+    fn delete_fix(&mut self, node: Rc<RefCell<Self::Node>>);   
 
     fn rotate(&mut self, side: Side, node: Rc<RefCell<Self::Node>>);
     
@@ -30,12 +30,10 @@ pub trait Tree<T: Ord + Copy + std::fmt::Debug + std::fmt::Display> {
     fn delete(&mut self, k: T) {
         // similar to insert
         let root = self.get_root();
-        // let (mut new_root, fix_tree) = self.bst_delete(root.clone(), k); // should return root here 
-        let temp = root.clone();
-        let (new_root, successor, fix_tree) = self.bst_delete(temp, k);
-        // if fix_tree {
-        //     // new_root = self.delete_fix(inserted_node); // replace with actual fix function
-        // }
+        let (new_root, successor, fix_tree) = self.bst_delete(root.clone(), k);
+        if fix_tree {
+            // new_root = self.delete_fix(inserted_node); // replace with actual fix function
+        }
         self.set_root(new_root);
     }
 
@@ -91,7 +89,7 @@ pub trait Tree<T: Ord + Copy + std::fmt::Debug + std::fmt::Display> {
             Some(n) => {
                 let successor = self.bst_replace(n);
                 match successor.clone() {
-                    None => (self.get_root().clone(), None, false),
+                    None => (self.get_root().clone(), None, true),
                     Some(s) => {
                         let temp = s.clone();
                         let root = self.climb_to_root(temp);
@@ -107,46 +105,47 @@ pub trait Tree<T: Ord + Copy + std::fmt::Debug + std::fmt::Display> {
         // let mut n = node.as_ref().borrow_mut();
         let is_root = self.get_parent(node.clone()).is_none();
         // find successor
-        let successor = {
-            if self.is_leaf(node.clone()) {
-                None
+        // let successor = {
+        //     if self.is_leaf(node.clone()) {
+        //         None
 
-            } else if self.get_child(node.clone(), Side::Left).is_none() && self.get_child(node.clone(), Side::Right).is_some() {
+        //     } else if self.get_child(node.clone(), Side::Left).is_none() && self.get_child(node.clone(), Side::Right).is_some() {
 
-                self.take_child(node.clone(), Side::Right).clone()
+        //         self.take_child(node.clone(), Side::Right).clone()
                 
-            } else if self.get_child(node.clone(), Side::Left).is_none() && self.get_child(node.clone(), Side::Right).is_none() {
+        //     } else if self.get_child(node.clone(), Side::Left).is_none() && self.get_child(node.clone(), Side::Right).is_none() {
 
-                self.take_child(node.clone(), Side::Left).clone()
+        //         self.take_child(node.clone(), Side::Left).clone()
 
-            } else {
-                let (min_val, min_right_child, min_parent_ptr, node_key) = {
-                    let right = self.right(node.clone()).unwrap();
-                    let min_ptr = self.find_min(right);
-                    let min_val = self.get_key(min_ptr.clone());
-                    let min_parent_ptr = self.get_parent(min_ptr.clone()).unwrap();
-                    let min_right_child = self.right(min_ptr.clone());
-                    let node_key = self.get_key(node.clone()).clone();
+        //     } else {
+        //         let (min_val, min_right_child, min_parent_ptr, node_key) = {
+        //             let right = self.right(node.clone()).unwrap();
+        //             let min_ptr = self.find_min(right);
+        //             let min_val = self.get_key(min_ptr.clone());
+        //             let min_parent_ptr = self.get_parent(min_ptr.clone()).unwrap();
+        //             let min_right_child = self.right(min_ptr.clone());
+        //             let node_key = self.get_key(node.clone()).clone();
 
-                    (min_val, min_right_child, min_parent_ptr, node_key)
-                };
+        //             (min_val, min_right_child, min_parent_ptr, node_key)
+        //         };
 
-                {
-                    let mut min_parent = min_parent_ptr.as_ref().borrow_mut();
+        //         {
+        //             let mut min_parent = min_parent_ptr.as_ref().borrow_mut();
 
-                    if min_parent.equal(node_key.clone()) {
-                        min_parent.set_child(Side::Right, min_right_child.clone());
-                    } else {
-                        min_parent.set_child(Side::Left, min_right_child.clone());
-                    }
-                } 
+        //             if min_parent.equal(node_key.clone()) {
+        //                 min_parent.set_child(Side::Right, min_right_child.clone());
+        //             } else {
+        //                 min_parent.set_child(Side::Left, min_right_child.clone());
+        //             }
+        //         } 
 
-                self.set_key(node.clone(), min_val.clone());
+        //         self.set_key(node.clone(), min_val.clone());
 
-                Some(node.clone())
-            }
+        //         Some(node.clone())
+        //     }
 
-        };
+        // };
+        let successor = self.find_successor(node);
 
         // update parent
         if is_root {
@@ -161,6 +160,46 @@ pub trait Tree<T: Ord + Copy + std::fmt::Debug + std::fmt::Display> {
 
         successor.clone()
 
+    }
+
+    fn find_successor(&self, node: Rc<RefCell<Self::Node>>) -> Option<Rc<RefCell<Self::Node>>> {
+        if self.is_leaf(node.clone()) {
+            None
+
+        } else if self.get_child(node.clone(), Side::Left).is_none() && self.get_child(node.clone(), Side::Right).is_some() {
+
+            self.take_child(node.clone(), Side::Right).clone()
+            
+        } else if self.get_child(node.clone(), Side::Left).is_none() && self.get_child(node.clone(), Side::Right).is_none() {
+
+            self.take_child(node.clone(), Side::Left).clone()
+
+        } else {
+            let (min_val, min_right_child, min_parent_ptr, node_key) = {
+                let right = self.right(node.clone()).unwrap();
+                let min_ptr = self.find_min(right);
+                let min_val = self.get_key(min_ptr.clone());
+                let min_parent_ptr = self.get_parent(min_ptr.clone()).unwrap();
+                let min_right_child = self.right(min_ptr.clone());
+                let node_key = self.get_key(node.clone()).clone();
+
+                (min_val, min_right_child, min_parent_ptr, node_key)
+            };
+
+            {
+                let mut min_parent = min_parent_ptr.as_ref().borrow_mut();
+
+                if min_parent.equal(node_key.clone()) {
+                    min_parent.set_child(Side::Right, min_right_child.clone());
+                } else {
+                    min_parent.set_child(Side::Left, min_right_child.clone());
+                }
+            } 
+
+            self.set_key(node.clone(), min_val.clone());
+
+            Some(node.clone())
+        }
     }
 
     fn get_parent(&self, node: Rc<RefCell<Self::Node>>) -> Option<Rc<RefCell<Self::Node>>> {
