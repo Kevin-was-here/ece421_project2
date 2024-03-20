@@ -26,6 +26,12 @@ pub trait Tree<T: Ord + Copy + std::fmt::Debug + std::fmt::Display> {
         self.set_root(Some(new_root.clone()));
     } 
 
+    fn get_parent(&self, node: Rc<RefCell<Self::Node>>) -> Option<Rc<RefCell<Self::Node>>> {
+        node.as_ref().borrow().get_parent().clone()
+    }
+
+    
+
     // fn get_height(&self) -> usize {
     //     if let Some(root) = self.get_root() {
     //         get_height(Some(root.clone()))

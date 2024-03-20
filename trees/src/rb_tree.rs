@@ -64,6 +64,10 @@ impl<T: Ord> Node<T> for RedBlackTreeNode<T> {
         &self.key
     }
 
+    fn set_key(&mut self, key: T) {
+        self.key = key;
+    }
+
     fn greater(&self, val: T) -> bool {
         self.key > val
     }

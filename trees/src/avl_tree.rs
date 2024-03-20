@@ -11,9 +11,9 @@ pub struct AvlTreeNode<T> {
     pub key: T,
     pub parent: MaybeAvlTree<T>,
     pub height: i32,
-    left: MaybeAvlTree<T>,
-    right: MaybeAvlTree<T>,
-    is_child: Option<Side>,
+    pub left: MaybeAvlTree<T>,
+    pub right: MaybeAvlTree<T>,
+    pub is_child: Option<Side>,
     pub balance_factor: i32,
 }
 
@@ -46,6 +46,10 @@ impl<T: Ord> Node<T> for AvlTreeNode<T>{
 
     fn get_key(&self) -> &T {
         &self.key
+    }
+
+    fn set_key(&mut self, key: T) {
+        self.key = key;
     }
 
     fn greater(&self, val: T) -> bool {
@@ -330,91 +334,5 @@ T: Ord + Copy + std::fmt::Debug + std::fmt::Display
         }
 
     }
-
-    // ///Start from the root and traverse the tree to 
-    // /// find the node to be deleted
-    // fn delete(&self, root: AvlTree<T>, key: T) {
-
-    //     //if root is none
-
-    //     //  return root;
-
-    //     //elif key < root.key
-
-    //     //  root.left = root.left.delete(key);
-
-    //     //else if key > root.key
-
-    //     //  root.right = root.right.delete(key);
-
-    //     //else
-
-    //     //   if root.left is none
-
-    //     //      temp = root.right;
-
-    //     //      root = None;
-
-    //     //      return temp;
-
-    //     //    elif root.right is none
-        
-    //     //      temp = root.left;
-
-    //     //      root = None;
-
-    //     //      return temp;
-
-    //     //    temp = self.min_value_node(root.right);
-
-    //     //    root.key = temp.key;
-
-    //     //    root.right = root.right.delete(temp.key);
-
-    //     //  root.height = 1 + max(root.left.height, root.right.height);
-
-    //     //  let bf = self.get_balance_factor(root);
-
-    //     //  if bf > 1 and self.get_balance_factor(root.left) >= 0
-
-    //     //      return self.right_rotate();
-
-    //     //  if bf > 1 and self.get_balance_factor(root.left) < 0
-
-    //     //      root.left = root.left.left_rotate();
-
-    //     //      return self.right_rotate();
-
-    //     //  if bf < -1 and self.get_balance_factor(root.right) <= 0
-
-    //     //      return self.left_rotate();
-
-    //     //  if bf < -1 and self.get_balance_factor(root.right) > 0
-
-    //     //      root.right = root.right.right_rotate();
-
-    //     //      return self.left_rotate();
-
-    //     //  return root;
-    // }
-
-    //fn search(&self,root:AvlTree<T>, key: T) -> AvlTreeNode<T> {
-        
-        //let mut current = self.root;
-
-        //while current is not none and key != current.key{
-
-        //  if key < current.key{
-
-        //      current = current.left;
-        
-        //  } else {
-
-        //      current = current.right;
-
-        //  }
-
-        //return current;
-    //}
 
 }

@@ -29,7 +29,8 @@ pub trait Traversible<T> {
 pub trait Node<T>: Traversible<T> {
     fn new(key: T) -> Self;
     fn get_key(&self) -> &T; 
-
+    fn set_key(&mut self, key: T);
+    
     fn greater(&self, val: T) -> bool;
     fn equal(&self, val: T) -> bool;
     fn less(&self, val: T) -> bool;
