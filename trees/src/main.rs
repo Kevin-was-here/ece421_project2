@@ -36,14 +36,14 @@ fn main() {
    let mut avl:AvlTree<i32> = AvlTree::new();
     avl.insert(3);
     println!("Done 3");
-    avl.insert(1);
-    println!("Done 1");
-    avl.insert(2);
-    println!("Done 2");
+    //avl.insert(1);
+    //println!("Done 1");
+    //avl.insert(2);
+    //println!("Done 2");
     avl.insert(5);
     println!("Done 5");
-    avl.insert(4);
-    println!("Done 4");
+    //avl.insert(4);
+    //println!("Done 4");
     avl.insert(6);
     println!("Done 6");
 }
