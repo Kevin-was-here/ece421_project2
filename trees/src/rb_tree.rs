@@ -423,6 +423,7 @@ where
     }
 
     pub fn count_leaves(&self) -> usize {
+        // PART 1.3 count leaves in tree
         if let Some(ptr) = &self.root {
             let root = ptr.as_ref().borrow();
             return root.count_leaves_node();
@@ -431,6 +432,15 @@ where
             return 0;
         }
     }
+
+    pub fn is_empty(&self) -> bool {
+        // PART 1.6 check if tree empty
+        if let None = &self.root {
+            return true;
+        } else {
+            return false;
+        }
+    } 
 
     // traverse up the tree from the given node and return the root
     fn climb_to_root(&self, node: Rc<RefCell<RedBlackTreeNode<T>>>) -> Rc<RefCell<RedBlackTreeNode<T>>> {
