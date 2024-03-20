@@ -51,6 +51,4 @@ pub trait Node<T>: Traversible<T> {
     
     fn is_leaf(&self) -> bool;
 
-    fn set_height(&mut self, height: usize);
-    fn get_height(&self) -> usize;
 }

@@ -67,17 +67,7 @@ impl<T: Ord> Node<T> for RedBlackTreeNode<T> {
     fn set_key(&mut self, val: T) {
         self.key = val;
     }
-
-    fn set_height(&mut self, height: usize) {
-        //not needed for RB tree
-        unimplemented!()
-    }
-
-    fn get_height(&self) -> usize {
-        //not needed for RB tree
-        unimplemented!()
-    }
-
+    
     fn greater(&self, val: T) -> bool {
         self.key > val
     }
