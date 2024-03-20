@@ -258,6 +258,11 @@ impl<T: Ord + Copy + std::fmt::Debug + std::fmt::Display> Tree<T> for AvlTree<T>
         //First, we need to update the height of the node and all of its ancestors
         self.refresh_height(node.clone());
         
+        //if tree is rebalanced, we need to check if the tree is balanced again
+        let mut is_balanced:bool = true;
+
+        let node_key = self.get_key(node.clone());
+
         //Next, we need to check if the tree is balanced
         //check balancing factor of the node and its acestors
         let mut current_node = node.clone();
@@ -266,51 +271,65 @@ impl<T: Ord + Copy + std::fmt::Debug + std::fmt::Display> Tree<T> for AvlTree<T>
             // let n = current_node.as_ref().borrow();
             // let balance_factor = n.get_balance_factor();
             let balance_factor = self.get_balance_factor(current_node.clone());
-            let key = self.get_key(current_node.clone());
-            println!("For node {} Balance factor: {}", key, balance_factor);
+            let root_key = self.get_key(current_node.clone());
+
+            println!("For node {} Balance factor: {}", root_key, balance_factor);
             if balance_factor > 1 || balance_factor < -1 {
-                
+                is_balanced = false;
                 //Tree is unbalanced, we need to fix it
                 println!("Tree is unbalanced, fixing it");
 
                 //check for which of the 4 cases the tree is unbalanced
 
-                //case 1: bf > 1 and key value of node is less than key value of left child
-                // if balance_factor > 1 && 
-                // n.get_child(Side::Left).as_ref().unwrap().as_ref().borrow().greater(n.key){
-                    if balance_factor > 1 && self.greater(self.left(current_node.clone()).unwrap(), key.clone()) {
+                
+                if balance_factor > 1 {
+
+                    //since balance factor is > 1 we know there is a left child
+                    //get the left child key
+                    // let left_ptr = self.left(current_node.clone()).unwrap();
+                    // let left_key = self.get_key(left_ptr.clone());
+                    // drop(left_ptr);
+
+                    //case 1: bf > 1 and key value of node is less than key value of left child
+                    if node_key < root_key {
                         println!("Case 1: Right rotation");
                         self.rotate(Side::Right, current_node.clone());
                     }
-                    
-                    //case 2: bf > 1 and key value of node is greater than key value of left child
-                    // else if balance_factor > 1 &&
-                    // n.get_child(Side::Left).as_ref().unwrap().as_ref().borrow().less(n.key){
-                    else if balance_factor > 1 && self.less(self.left(current_node.clone()).unwrap(), key.clone()) {
+                
+                //case 2: bf > 1 and key value of node is greater than key value of left child
+                    else if node_key > root_key {
                         println!("Case 2: Left-Right rotation");
-                        //self.rotate(Side::Left, n.get_child(Side::Left).as_ref().unwrap().clone());
-                        //self.rotate(Side::Right, current_node.clone());
+                        let n = current_node.as_ref().borrow();
+                        self.rotate(Side::Left, n.get_child(Side::Left).as_ref().unwrap().clone());
+                        self.rotate(Side::Right, current_node.clone());
+                        drop(n);
                     }
-    
-                    //case 3: bf < -1 and key value of node is greater than key value of right child
-                    // else if balance_factor < -1 &&
-                    // n.get_child(Side::Right).as_ref().unwrap().as_ref().borrow().greater(n.key){
-                    else if balance_factor < -1 && self.greater(self.right(current_node.clone()).unwrap(), key.clone()) {
+                }
+                //case 3: bf < -1 and key value of node is greater than key value of right child
+                else if balance_factor < -1 {
+
+                    //since balance factor is < -1 we know there is a right child
+                    //get the right child key
+                    let right_ptr = self.right(current_node.clone()).unwrap();
+                    let right_key = self.get_key(right_ptr.clone());
+                    drop(right_ptr);
+
+                    if node_key > root_key{
                         println!("Case 3: Left rotation");
                         self.rotate(Side::Left, current_node.clone());
                     }
-    
-                    //case 4: bf < -1 and key value of node is less than key value of right child
-                    // else if balance_factor < -1 &&
-                    // n.get_child(Side::Right).as_ref().unwrap().as_ref().borrow().less(n.key){
-                    else if balance_factor < -1 && self.less(self.right(current_node.clone()).unwrap(), key.clone()) {
+
+                //case 4: bf < -1 and key value of node is less than key value of right child
+                    else if node_key < root_key{
                         println!("Case 4: Right-Left rotation");
-                        //self.rotate(Side::Right, n.get_child(Side::Right).as_ref().unwrap().clone());
-                        //self.rotate(Side::Left, current_node.clone());
+                        let n = current_node.as_ref().borrow();
+                        self.rotate(Side::Right, n.get_child(Side::Right).as_ref().unwrap().clone());
+                        self.rotate(Side::Left, current_node.clone());
+                        drop(n);
                     }
-                    
-                    //after fixing the tree, we need to update the height of the node and all of its ancestors
-                    //self.refresh_height(current_node.clone());
+                }
+                //after fixing the tree, we need to update the height of the node and all of its ancestors
+                self.refresh_height(current_node.clone());
             }
 
             let n = current_node.as_ref().borrow();
@@ -318,10 +337,18 @@ impl<T: Ord + Copy + std::fmt::Debug + std::fmt::Display> Tree<T> for AvlTree<T>
                 drop(n);
                 current_node = p;
             } else {
-                break;
+                if is_balanced{
+                    break;
+                
+                }else{
+                    //if the tree is still unbalanced, we need to check again
+                    is_balanced = true;
+                    drop(n);
+                    drop(current_node);
+                    current_node = node.clone();
+                }
             }
         }
-
 
 
         //lets return root of the node 
@@ -446,7 +473,7 @@ impl<T: Ord + Copy + std::fmt::Debug + std::fmt::Display> Tree<T> for AvlTree<T>
                 grand_child.as_ref().borrow_mut().update_height();
             }else{
                 n.update_height();
-            
+            }
 
         }
     }
