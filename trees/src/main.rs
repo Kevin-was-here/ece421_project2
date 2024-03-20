@@ -23,6 +23,7 @@ fn main() {
 
     tree.print_inorder();
     tree.print_structure();
+    println!("num leaves: {}", tree.count_leaves());
 
     let mut tree2: RedBlackTree<char> = RedBlackTree::new();
     tree2.insert('a');
@@ -31,6 +32,6 @@ fn main() {
     tree2.insert('v');
     tree2.print_inorder();
     tree2.print_structure();
-
+    println!("num leaves: {}", tree2.count_leaves());    
    // let mut avl:AvlTree<i32> = AvlTree::new();
 }

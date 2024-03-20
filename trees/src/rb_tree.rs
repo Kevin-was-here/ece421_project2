@@ -253,6 +253,22 @@ impl<T: Ord + std::fmt::Debug + std::fmt::Display> RedBlackTreeNode<T> {
         }
     }
 
+
+    fn count_leaves_node(&self) -> usize {
+        if self.is_leaf() {
+            return 1;
+        }
+        let mut count: usize = 0;
+        // otherwise, first go left for lower values
+        if let Some(ptr) = &self.left {
+            count += ptr.as_ref().borrow().count_leaves_node();
+        }
+        // then go right for higher values
+        if let Some(ptr) = &self.right {
+            count += ptr.as_ref().borrow().count_leaves_node();
+        }
+        return count;
+    }
 }
 
 impl<T: Ord + Copy + std::fmt::Debug + std::fmt::Display> Tree<T> for RedBlackTree<T> {
@@ -395,7 +411,7 @@ where
 
     pub fn print_structure(&self) {
         // PART 1.7 print tree showing structure and colours
-       println!("------- Tree Structure -------");
+        println!("------- Tree Structure -------");
         if let Some(ptr) = &self.root {
             let root = ptr.as_ref().borrow();
             root.print_structure_node(0, NodeIsFrom::Neither);
@@ -405,6 +421,17 @@ where
         }       
         println!("------------------------------");
     }
+
+    pub fn count_leaves(&self) -> usize {
+        if let Some(ptr) = &self.root {
+            let root = ptr.as_ref().borrow();
+            return root.count_leaves_node();
+        }
+        else {
+            return 0;
+        }
+    }
+
     // traverse up the tree from the given node and return the root
     fn climb_to_root(&self, node: Rc<RefCell<RedBlackTreeNode<T>>>) -> Rc<RefCell<RedBlackTreeNode<T>>> {
         let parent = node.as_ref().borrow().get_parent();
