@@ -558,6 +558,37 @@ where
 
     }
 
+    pub fn delete(&mut self, k: T) {
+        let search = self.bst_find(self.get_root().clone(), k);
+        if search.is_none() {
+            return;
+        }
+
+        let node = search.unwrap();
+        let deleted_color;
+        let moved_up_node;
+
+        if self.left(node.clone()).is_none() || self.right(node.clone()).is_none() {
+            moved_up_node = self.replace(node.clone());
+            deleted_color = node.as_ref().borrow().get_color();
+        } else {
+            let right_child = self.right(node.clone()).unwrap();
+            let successor = self.find_min(right_child.clone());
+            let new_key = self.get_key(successor.clone());
+            self.set_key(node.clone(), new_key);
+            deleted_color = successor.as_ref().borrow().get_color();
+            moved_up_node = self.replace(successor.clone());
+        }
+
+        if deleted_color == NodeColor::Black {
+            self.delete_fix(moved_up_node.clone().unwrap());
+            if self.is_nil(moved_up_node.clone().unwrap()) {
+                let nil_parent = self.get_parent(moved_up_node.unwrap().clone());
+                self.replace_parent_child(nil_parent, node.clone(), None);  
+            }
+        }   
+    }
+
     fn delete_fix_case_1(&mut self, node: Rc<RefCell<RedBlackTreeNode<T>>>, sibling: Rc<RefCell<RedBlackTreeNode<T>>>) {
         let p = self.get_parent(node.clone());
         

@@ -26,9 +26,6 @@ pub trait Tree<T: Ord + Copy + std::fmt::Debug + std::fmt::Display> {
             None => root.clone(),
             Some(n) => Some(self.insert_fix(new_node.clone().unwrap()).clone()),
         };
-        // if new_node.is_some() {
-        //     let new_root = self.insert_fix(new_node.clone().unwrap());
-        // }
         self.set_root(new_root.clone());
     }
 
