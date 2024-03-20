@@ -7,15 +7,16 @@
 
 // type MaybeAvlTree<T> = Option<Rc<RefCell<AvlTreeNode<T>>>>;
 
-// #[derive(Debug)]
-// pub struct AvlTreeNode<T> {
-//     pub key: T,
-//     pub parent: MaybeAvlTree<T>,
-//     pub height: usize,
-//     pub left: MaybeAvlTree<T>,
-//     pub right: MaybeAvlTree<T>,
-//     pub is_child: Option<Side>,
-// }
+#[derive(Debug)]
+pub struct AvlTreeNode<T> {
+    pub key: T,
+    pub parent: MaybeAvlTree<T>,
+    pub height: usize,
+    pub left: MaybeAvlTree<T>,
+    pub right: MaybeAvlTree<T>,
+    pub is_child: Option<Side>,
+    //pub balance_factor: i8,
+}
 
 // pub struct AvlTree<T> {
 //     root: MaybeAvlTree<T>,
@@ -32,16 +33,17 @@
 
 // impl<T: Ord> Node<T> for AvlTreeNode<T>{
 
-//     fn new(key: T) -> Self {
-//         Self{
-//             key: key,
-//             left: None,
-//             right: None,
-//             parent: None,
-//             height: 1,
-//             is_child: None,
-//             }
-//     }
+    fn new(key: T) -> Self {
+        Self{
+            key: key,
+            left: None,
+            right: None,
+            parent: None,
+            height: 1,
+            is_child: None,
+            //balance_factor: 0,
+            }
+    }
 
 //     fn get_key(&self) -> &T {
 //         &self.key
@@ -169,12 +171,20 @@
 //             right_height = right.as_ref().borrow().get_height();
 //         }else{right_height = 0;}
         
-//         let calculated_height = 1 + max(left_height, right_height);
-//         self.set_height(calculated_height);
-//     }
+        let calculated_height = 1 + max(left_height, right_height);
+        self.set_height(calculated_height);
+    }
 
-//     // Helper function to get the balance factor of a node.
-//     fn get_balance_factor(&self) -> i8 {
+    // fn get_balance_factor(&self) -> i8{
+    //     self.balance_factor
+    // }
+
+    // fn set_balance_factor(&mut self, bf: i8){
+    //     self.balance_factor = bf;
+    // }
+
+    // Helper function to get the balance factor of a node.
+    fn get_balance_factor(&mut self) -> i8{
 
 //         //declare left_height and right_height
 //         let mut left_height: i8 = 0;
@@ -188,8 +198,10 @@
 //             right_height = (right.as_ref().borrow().get_height()) as i8;
 //         }else{right_height = 0;}
     
-//         return (left_height - right_height);
-//     }
+        let calculated_balance_factor = left_height - right_height;
+        //self.set_balance_factor(calculated_balance_factor);
+        return calculated_balance_factor
+    }
 
 //     fn print_inorder_node(&self) {
 //         // function called recursively to traverse nodes in order and print values
@@ -246,73 +258,69 @@
 //         //First, we need to update the height of the node and all of its ancestors
 //         self.refresh_height(node.clone());
         
-//         //Next, we need to check if the tree is balanced
-//         //check balancing factor of the node and its acestors
-//         let mut current_node = node.clone();
-//         loop{
-//             // let temp = current_node.clone();
-//             // let n = current_node.as_ref().borrow();
-//             // let balance_factor = n.get_balance_factor();
-//             let balance_factor = self.get_balance_factor(node.clone());
-//             let key = self.get_key(node.clone());
-//             // println!("For node {} Balance factor: {}", n.key, balance_factor);
-//             println!("For node {} Balance factor: {}", key.clone(), balance_factor);
-//             if balance_factor > 1 || balance_factor < -1 {
+        //Next, we need to check if the tree is balanced
+        //check balancing factor of the node and its acestors
+        let mut current_node = node.clone();
+        loop{
+            // let temp = current_node.clone();
+            // let n = current_node.as_ref().borrow();
+            // let balance_factor = n.get_balance_factor();
+            let balance_factor = self.get_balance_factor(current_node.clone());
+            let key = self.get_key(current_node.clone());
+            println!("For node {} Balance factor: {}", key, balance_factor);
+            if balance_factor > 1 || balance_factor < -1 {
                 
 //                 //Tree is unbalanced, we need to fix it
 //                 println!("Tree is unbalanced, fixing it");
 
 //                 //check for which of the 4 cases the tree is unbalanced
 
-//                 //case 1: bf > 1 and key value of node is less than key value of left child
-//                 // if balance_factor > 1 && 
-//                 // n.get_child(Side::Left).as_ref().unwrap().as_ref().borrow().greater(n.key){
-//                 if balance_factor > 1 && self.greater(self.left(current_node.clone()).unwrap(), key.clone()) {
-//                     println!("Case 1: Right rotation");
-//                     //self.rotate(Side::Right, current_node.clone());
-//                 }
-                
-//                 //case 2: bf > 1 and key value of node is greater than key value of left child
-//                 // else if balance_factor > 1 &&
-//                 // n.get_child(Side::Left).as_ref().unwrap().as_ref().borrow().less(n.key){
-//                 else if balance_factor > 1 && self.less(self.left(current_node.clone()).unwrap(), key.clone()) {
-//                     println!("Case 2: Left-Right rotation");
-//                     //self.rotate(Side::Left, n.get_child(Side::Left).as_ref().unwrap().clone());
-//                     //self.rotate(Side::Right, current_node.clone());
-//                 }
-
-//                 //case 3: bf < -1 and key value of node is greater than key value of right child
-//                 // else if balance_factor < -1 &&
-//                 // n.get_child(Side::Right).as_ref().unwrap().as_ref().borrow().greater(n.key){
-//                 else if balance_factor < -1 && self.greater(self.right(current_node.clone()).unwrap(), key.clone()) {
-//                     println!("Case 3: Left rotation");
-//                     // let temp_clone = temp.clone();
+                //case 1: bf > 1 and key value of node is less than key value of left child
+                // if balance_factor > 1 && 
+                // n.get_child(Side::Left).as_ref().unwrap().as_ref().borrow().greater(n.key){
+                    if balance_factor > 1 && self.greater(self.left(current_node.clone()).unwrap(), key.clone()) {
+                        println!("Case 1: Right rotation");
+                        self.rotate(Side::Right, current_node.clone());
+                    }
                     
-//                     // self.rotate(Side::Left, temp_clone);
-//                     self.rotate(Side::Left, current_node.clone());
-//                 }
+                    //case 2: bf > 1 and key value of node is greater than key value of left child
+                    // else if balance_factor > 1 &&
+                    // n.get_child(Side::Left).as_ref().unwrap().as_ref().borrow().less(n.key){
+                    else if balance_factor > 1 && self.less(self.left(current_node.clone()).unwrap(), key.clone()) {
+                        println!("Case 2: Left-Right rotation");
+                        //self.rotate(Side::Left, n.get_child(Side::Left).as_ref().unwrap().clone());
+                        //self.rotate(Side::Right, current_node.clone());
+                    }
+    
+                    //case 3: bf < -1 and key value of node is greater than key value of right child
+                    // else if balance_factor < -1 &&
+                    // n.get_child(Side::Right).as_ref().unwrap().as_ref().borrow().greater(n.key){
+                    else if balance_factor < -1 && self.greater(self.right(current_node.clone()).unwrap(), key.clone()) {
+                        println!("Case 3: Left rotation");
+                        self.rotate(Side::Left, current_node.clone());
+                    }
+    
+                    //case 4: bf < -1 and key value of node is less than key value of right child
+                    // else if balance_factor < -1 &&
+                    // n.get_child(Side::Right).as_ref().unwrap().as_ref().borrow().less(n.key){
+                    else if balance_factor < -1 && self.less(self.right(current_node.clone()).unwrap(), key.clone()) {
+                        println!("Case 4: Right-Left rotation");
+                        //self.rotate(Side::Right, n.get_child(Side::Right).as_ref().unwrap().clone());
+                        //self.rotate(Side::Left, current_node.clone());
+                    }
+                    
+                    //after fixing the tree, we need to update the height of the node and all of its ancestors
+                    //self.refresh_height(current_node.clone());
+            }
 
-//                 //case 4: bf < -1 and key value of node is less than key value of right child
-//                 // else if balance_factor < -1 &&
-//                 // n.get_child(Side::Right).as_ref().unwrap().as_ref().borrow().less(n.key){
-//                 else if balance_factor < -1 && self.less(self.right(current_node.clone()).unwrap(), key.clone()) {
-//                     println!("Case 4: Right-Left rotation");
-//                     //self.rotate(Side::Right, n.get_child(Side::Right).as_ref().unwrap().clone());
-//                     //self.rotate(Side::Left, current_node.clone());
-//                 }
-                
-//                 //after fixing the tree, we need to update the height of the node and all of its ancestors
-//                 //self.refresh_height(current_node.clone());
-//             }
-
-//             if let Some(p) = self.get_parent(current_node.clone()) {
-//             // if let Some(p) = n.get_parent() {
-//                 // drop(n);
-//                 current_node = p;
-//             } else {
-//                 break;
-//             }
-//         }
+            let n = current_node.as_ref().borrow();
+            if let Some(p) = n.get_parent() {
+                drop(n);
+                current_node = p;
+            } else {
+                break;
+            }
+        }
 
 
 
@@ -328,45 +336,121 @@
 //         root
 //     }
 
-//     fn rotate(&mut self, side: Side, node: Rc<RefCell<AvlTreeNode<T>>>) {
-//         //here side means the direction of rotation
+    fn rotate(&mut self, side: Side, node: Rc<RefCell<AvlTreeNode<T>>>) {
+        //here side means the direction of rotation
 
-//         let mut n = node.as_ref().borrow_mut();
+        let node_key = self.get_key(node.clone());
+        println!("Rotating node {}", node_key);
+
+        let mut n = node.as_ref().borrow_mut();
+
+        //before anything we save the parent of the node to update latter
+        let grandparent = n.get_parent();
+        //get the node key to use in setting parent later
+        
 
 //         //first we check the side of rotation
 //         if side == Side::Left {
 //             //left rotation
 //             //we need to rotate the node to the left
 
-//             //first we need to get the right child of the node
-//             let right_child_ptr = n.get_child(Side::Right);
-//             let mut right_child = right_child_ptr.as_ref().unwrap().as_ref().borrow_mut();
+            //first we need to get the right child of the node
+            let right_child_ptr = n.get_child(Side::Right);
+            let right_child = right_child_ptr.as_ref().unwrap().as_ref().borrow_mut();
 
 //             //next we need to save the left child of the right child if there is any
 //             if let Some(left_grandchild) = right_child.get_child(Side::Left){
 //                 //if there is a left grandchild, we need to set it as the right child of the node
 //                 n.set_child(Side::Right, Some(left_grandchild.clone()));
 
-//                 //we also need to set the node as the parent of the left grandchild
-//                 left_grandchild.as_ref().borrow_mut().set_parent(Some(Side::Right), Some(node.clone()));
-//             }
+                //we also need to set the node as the parent of the left grandchild
+                left_grandchild.as_ref().borrow_mut().set_parent(Some(Side::Right), Some(node.clone()));
+            }else{
+                //if there is no left grandchild, we need to set the right child of the node as None
+                n.set_child(Side::Right, None);
+            }
 
-//             drop(right_child);
-//             //next we need to set the right child as the parent of the node
-//             n.set_parent(Some(Side::Left), Some(right_child_ptr.as_ref().unwrap().clone()));
-//             //and set the node as the left child of the right child
-//             let mut right_child = right_child_ptr.as_ref().unwrap().as_ref().borrow_mut();
-//             right_child.set_child(Side::Left, Some(node.clone()));
+            drop(right_child);
+            //next we need to set the right child as the parent of the node
+            n.set_parent(Some(Side::Left), Some(right_child_ptr.as_ref().unwrap().clone()));
 
-//             //finally we need to update the height of the node and the right child
-//             if let Some(grand_child) = n.get_child(Side::Right){
-//                 grand_child.as_ref().borrow_mut().update_height();
-//             }else{
-//                 n.update_height();
-//             }
-//         }
-//     }
-// }
+            //and set the node as the left child of the right child
+            let mut right_child = right_child_ptr.as_ref().unwrap().as_ref().borrow_mut();
+            right_child.set_child(Side::Left, Some(node.clone()));
+
+            //and update the parent of the right child
+            right_child.set_parent(None, grandparent.clone());
+
+            //update the grandparent's right child
+            if let Some(ptr) = grandparent{
+                let mut gp = ptr.as_ref().borrow_mut();
+                //check if the node is the left or right child of the grandparent
+                if gp.key > node_key {
+                    gp.set_child(Side::Left, Some(right_child_ptr.as_ref().unwrap().clone()));
+                }else{
+                    gp.set_child(Side::Right, Some(right_child_ptr.as_ref().unwrap().clone()));
+                }
+            }
+
+            //finally we need to update the height of the node and the right child
+            if let Some(grand_child) = n.get_child(Side::Right){
+                grand_child.as_ref().borrow_mut().update_height();
+            }else{
+                n.update_height();
+            }
+        }else{
+
+            //right rotation
+            //we need to rotate the node to the right
+
+            //first we need to get the left child of the node
+            let left_child_ptr = n.get_child(Side::Left);
+            let left_child = left_child_ptr.as_ref().unwrap().as_ref().borrow_mut();
+
+            //next we need to save the right child of the left child if there is any
+            if let Some(right_grandchild) = left_child.get_child(Side::Right){
+                //if there is a right grandchild, we need to set it as the left child of the node
+                n.set_child(Side::Left, Some(right_grandchild.clone()));
+
+                //we also need to set the node as the parent of the right grandchild
+                right_grandchild.as_ref().borrow_mut().set_parent(Some(Side::Left), Some(node.clone()));
+            }else{
+                //if there is no right grandchild, we need to set the left child of the node as None
+                n.set_child(Side::Left, None);
+            }
+
+            drop(left_child);
+            //next we need to set the left child as the parent of the node
+            n.set_parent(Some(Side::Right), Some(left_child_ptr.as_ref().unwrap().clone()));
+
+            //and set the node as the right child of the left child
+            let mut left_child = left_child_ptr.as_ref().unwrap().as_ref().borrow_mut();
+            left_child.set_child(Side::Right, Some(node.clone()));
+
+            //and update the parent of the left child
+            left_child.set_parent(None, grandparent.clone());
+
+            //update the grandparent's left child
+            if let Some(ptr) = grandparent{
+                let mut gp = ptr.as_ref().borrow_mut();
+                //check if the node is the left or right child of the grandparent
+                if gp.key > node_key {
+                    gp.set_child(Side::Left, Some(left_child_ptr.as_ref().unwrap().clone()));
+                }else{
+                    gp.set_child(Side::Right, Some(left_child_ptr.as_ref().unwrap().clone()));
+                }
+            }
+
+            //finally we need to update the height of the node and the left child
+            if let Some(grand_child) = n.get_child(Side::Left){
+                grand_child.as_ref().borrow_mut().update_height();
+            }else{
+                n.update_height();
+            
+
+        }
+    }
+}
 
 
 // impl<T> AvlTree<T>
@@ -374,20 +458,35 @@
 // T: Ord + Copy + std::fmt::Debug + std::fmt::Display
 // {
 
-//     pub fn refresh_height(&mut self, node: Rc<RefCell<AvlTreeNode<T>>>) {
-//         let mut current_node = node.clone();
-//         //travel up the tree to update the height of the all acestors nodes
-//         loop {
-//             let mut n = current_node.as_ref().borrow_mut();
-//             n.update_height();
-//             if let Some(p) = n.get_parent() {
-//                 drop(n);
-//                 current_node = p;
-//             } else {
-//                 break;
-//             }
-//         }
-//     }
+    pub fn refresh_height(&mut self, node: Rc<RefCell<AvlTreeNode<T>>>) {
+        let mut current_node = node.clone();
+        //travel up the tree to update the height of the all acestors nodes
+        loop {
+            let mut n = current_node.as_ref().borrow_mut();
+            n.update_height();
+            if let Some(p) = n.get_parent() {
+                drop(n);
+                current_node = p;
+            } else {
+                break;
+            }
+        }
+    }
+
+    // pub fn refresh_balance_factor(&mut self, node: Rc<RefCell<AvlTreeNode<T>>>) {
+    //     let mut current_node = node.clone();
+    //     //travel up the tree to update the height of the all acestors nodes
+    //     loop {
+    //         let mut n = current_node.as_ref().borrow_mut();
+    //         n.update_balance_factor();
+    //         if let Some(p) = n.get_parent() {
+    //             drop(n);
+    //             current_node = p;
+    //         } else {
+    //             break;
+    //         }
+    //     }
+    // }
 
 //     pub fn print_inorder(&self) {
 //         // PART 2.5 print in-order traversal of tree
@@ -402,28 +501,28 @@
 //         println!("------------------------------");
 //     }
 
-//     pub fn print_structure(&self) {
-//         // PART 2.7 print tree showing structure and colours
-//        println!("------- Tree Structure -------");
-//         if let Some(ptr) = &self.root {
-//             let root = ptr.as_ref().borrow();
-//             //root.print_structure_node(0, NodeIsFrom::Neither);
-//         }
-//         else {
-//             println!("Empty tree");
-//         }       
-//         println!("------------------------------");
-//     }
+    pub fn print_structure(&self) {
+        // PART 2.7 print tree showing structure and colours
+       println!("------- Tree Structure -------");
+        if let Some(ptr) = &self.root {
+            let root = ptr.as_ref().borrow();
+            //root.print_structure_node(0, NodeIsFrom::Neither);
+        }
+        else {
+            println!("Empty tree");
+        }       
+        println!("------------------------------");
+    }
 
-//     fn get_balance_factor(&self, node: Rc<RefCell<AvlTreeNode<T>>>) -> i8 {
-//         node.as_ref().borrow().get_balance_factor()
-//     }
+    fn get_balance_factor(&self, node: Rc<RefCell<AvlTreeNode<T>>>) -> i8 {
+        node.as_ref().borrow_mut().get_balance_factor()
+    }
 
-//     fn greater(&self, node: Rc<RefCell<AvlTreeNode<T>>>, k: T) -> bool {
-//         node.as_ref().borrow().greater(k)
-//     }
-//     fn less(&self, node: Rc<RefCell<AvlTreeNode<T>>>, k: T) -> bool {
-//         node.as_ref().borrow().less(k)
-//     }
+    fn greater(&self, node: Rc<RefCell<AvlTreeNode<T>>>, k: T) -> bool {
+        node.as_ref().borrow().greater(k)
+    }
+    fn less(&self, node: Rc<RefCell<AvlTreeNode<T>>>, k: T) -> bool {
+        node.as_ref().borrow().less(k)
+    }
 
-// }
+}

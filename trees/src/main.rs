@@ -35,17 +35,27 @@ fn main() {
     // tree2.print_inorder();
     // tree2.print_structure();
 
-//    let mut avl:AvlTree<i32> = AvlTree::new();
-//     avl.insert(3);
-//     println!("Done 3");
-//     //avl.insert(1);
-//     //println!("Done 1");
-//     //avl.insert(2);
-//     //println!("Done 2");
-//     avl.insert(5);
-//     println!("Done 5");
-//     //avl.insert(4);
-//     //println!("Done 4");
-//     avl.insert(6);
-//     println!("Done 6");
+   let mut avl:AvlTree<i32> = AvlTree::new();
+    avl.insert(5);
+    println!("Done 5");
+    avl.insert(3);
+    println!("Done 3");
+    avl.insert(7);
+    println!("Done 7");
+    avl.insert(8);
+    println!("Done 8");
+    avl.insert(9);
+    println!("Done 9");
+
+    let mut avl2:AvlTree<i32> = AvlTree::new();
+    avl2.insert(6);
+    println!("Done 6");
+    avl2.insert(7);
+    println!("Done 7");
+    avl2.insert(1);
+    println!("Done 1");
+    avl2.insert(2);
+    println!("Done 2");
+    avl2.insert(3);
+    println!("Done 3");
 }
