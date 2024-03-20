@@ -184,6 +184,10 @@ pub trait Tree<T: Ord + Copy + std::fmt::Debug + std::fmt::Display> {
         node.as_ref().borrow().right().clone()
     }
 
+    fn left(&self, node: Rc<RefCell<Self::Node>>) -> Option<Rc<RefCell<Self::Node>>> {
+        node.as_ref().borrow().left().clone()
+    }
+
     fn get_key(&self, node: Rc<RefCell<Self::Node>>) -> T {
         node.as_ref().borrow().get_key().clone()
     }
