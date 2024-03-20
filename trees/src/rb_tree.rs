@@ -1,4 +1,5 @@
 use crate::tree::*;
+use crate::node::*;
 use std::borrow::{Borrow, BorrowMut};
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -19,18 +20,17 @@ enum NodeIsFrom {
 type MaybeRedBlackTree<T> = Option<Rc<RefCell<RedBlackTreeNode<T>>>>;
 
 #[derive(Debug)]
-struct RedBlackTreeNode<T> {
-    pub color: NodeColor,
+pub struct RedBlackTreeNode<T> {
+    color: NodeColor,
     pub key: T,
     pub parent: MaybeRedBlackTree<T>,
     is_child: Option<Side>,
     left: MaybeRedBlackTree<T>,
-   right: MaybeRedBlackTree<T>,
+    right: MaybeRedBlackTree<T>,
 }
 
 pub struct RedBlackTree<T> {
     root: MaybeRedBlackTree<T>,
-    size: usize,
 }
 
 impl<T: Ord> Traversible<T> for RedBlackTreeNode<T> {
@@ -253,51 +253,77 @@ impl<T: Ord + std::fmt::Debug + std::fmt::Display> RedBlackTreeNode<T> {
         }
     }
 
+
+    fn count_leaves_node(&self) -> usize {
+        if self.is_leaf() {
+            return 1;
+        }
+        let mut count: usize = 0;
+        // otherwise, first go left for lower values
+        if let Some(ptr) = &self.left {
+            count += ptr.as_ref().borrow().count_leaves_node();
+        }
+        // then go right for higher values
+        if let Some(ptr) = &self.right {
+            count += ptr.as_ref().borrow().count_leaves_node();
+        }
+        return count;
+    }
+
+    fn get_height_node(&self, depth: usize) -> usize {
+        // recursive helper function for get_height of tree
+        if self.is_leaf() {
+            return depth;
+        }
+        // find max depth of either branch
+        let mut m: usize = usize::MIN;
+        // otherwise, first go left for lower values
+        if let Some(ptr) = &self.left {
+            m = std::cmp::max(m, ptr.as_ref().borrow().get_height_node(depth + 1));
+        }
+        // then go right for higher values
+        if let Some(ptr) = &self.right {
+            m = std::cmp::max(m, ptr.as_ref().borrow().get_height_node(depth + 1));
+        }
+        return m;
+    }
 }
 
-impl<T: Ord + Copy + std::fmt::Debug + std::fmt::Display> RedBlackTree<T> {
-    pub fn new() -> Self {
-        Self { root: None, size: 0 }
+impl<T: Ord + Copy + std::fmt::Debug + std::fmt::Display> Tree<T> for RedBlackTree<T> {
+    type Node = RedBlackTreeNode<T>;
+
+    fn new() -> Self {
+        Self { root: None }
     }
 
     fn get_root(&self) -> &MaybeRedBlackTree<T> {
         &self.root
     }
 
-    fn set_root(&mut self, node: Rc<RefCell<RedBlackTreeNode<T>>>) {
-        self.root = Some(node);
+    fn set_root(&mut self, node: Option<Rc<RefCell<RedBlackTreeNode<T>>>>) {
+        self.root = node.clone();
+        match node {
+            None => (),
+            Some(ptr) => {
+                let mut n = ptr.as_ref().borrow_mut();
+                n.set_color(NodeColor::Black);
+            }
+        }
     }
 
     // PART 1.1 insert a node
-    pub fn insert(&mut self, key: T) {
-        // first insert node as though in a BST
-        let root = self.get_root();
-        let (mut new_root, inserted_node, fix_tree) = bst_insert(root.clone(), key);
+    // fn insert(&mut self, key: T) {
+    //     // first insert node as though in a BST
+    //     let root = self.get_root();
+    //     let (mut new_root, inserted_node, fix_tree) = bst_insert(root.clone(), key);
 
-        if fix_tree {
-            new_root = self.insert_fix(inserted_node);
-            self.size += 1;
-        }
-        new_root.as_ref().borrow_mut().set_color(NodeColor::Black);
-        self.set_root(new_root);
-    } 
-
-    // traverse up the tree from the given node and return the root
-    fn climb_to_root(&self, node: Rc<RefCell<RedBlackTreeNode<T>>>) -> Rc<RefCell<RedBlackTreeNode<T>>> {
-        let parent = node.as_ref().borrow_mut().get_parent();
-        if parent.is_none() {{}
-            node
-        } else {
-            let mut p = parent.unwrap();
-            let mut not_root = true;
-            while not_root {
-                let temp = p;
-                not_root = temp.as_ref().borrow().get_parent().is_some();
-                p = temp;
-            }
-            p
-        }
-    }
+    //     if fix_tree {
+    //         new_root = self.insert_fix(inserted_node);
+    //         self.size += 1;
+    //     }
+    //     new_root.as_ref().borrow_mut().set_color(NodeColor::Black);
+    //     self.set_root(new_root);
+    // } 
 
     // rebalance the tree after insertion
     fn insert_fix(&mut self, node: Rc<RefCell<RedBlackTreeNode<T>>>) -> Rc<RefCell<RedBlackTreeNode<T>>> {
@@ -333,16 +359,136 @@ impl<T: Ord + Copy + std::fmt::Debug + std::fmt::Display> RedBlackTree<T> {
 
         root
     }
+    
+    fn rotate(&mut self, side: Side, node: Rc<RefCell<RedBlackTreeNode<T>>>) {
 
-    fn recolor_ins(&self, node: Rc<RefCell<RedBlackTreeNode<T>>>) {
-        let n = node.as_ref().borrow();
-        if n.get_grandparent().is_some() && n.get_uncle().is_some() {
-            n.get_grandparent().unwrap().as_ref().borrow_mut().set_color(NodeColor::Red);
-            n.get_parent().unwrap().as_ref().borrow_mut().set_color(NodeColor::Black);
-            n.get_uncle().unwrap().as_ref().borrow_mut().set_color(NodeColor::Black);
+        let mut n = node.as_ref().borrow_mut();
+
+        if let Some(child_ptr) = n.get_child(!side) {
+            {
+                let mut child = child_ptr.as_ref().borrow_mut();
+                let other_child = n.get_child(side);
+                n.set_child(!side, other_child);
+                child.set_parent(n.get_is_child().clone(), n.get_parent().clone());
+            }
+
+            if let Some(ptr) = n.get_child(side) {
+                let mut grandchild = ptr.as_ref().borrow_mut();
+                grandchild.set_parent(Some(side), Some(node.clone()));
+            }
+            
+
+            if n.get_parent().is_none() {
+                self.set_root(Some(child_ptr.clone()));
+            } else {
+                let parent_ptr = n.get_parent().clone().unwrap();
+                let mut parent = parent_ptr.as_ref().borrow_mut();
+                if n.is_child(side) {
+                    parent.set_child(side, Some(child_ptr.clone()));
+                } else {
+                    parent.set_child(!side, Some(child_ptr.clone()));
+                }
+            }
+
+            let mut child = child_ptr.as_ref().borrow_mut();
+            child.set_child(side, Some(node.clone()));
+            n.set_parent(Some(side), Some(child_ptr.clone()));
+        }   
+    }
+
+    // fn delete(&mut self, k: T) {
+        // similar to insert
+        // let root = self.get_root();
+        // bst_delete(root.clone(), k); // should return root here 
+        // if fix_tree {
+        //     // new_root = self.delete_fix(inserted_node); // replace with actual fix function
+        //     self.size -= 1;
+        // }
+        // new_root.as_ref().borrow_mut().set_color(NodeColor::Black);
+        // self.set_root(new_root);
+    // }
+
+}
+
+impl<T> RedBlackTree<T> 
+where 
+    T: Ord + Copy + std::fmt::Debug + std::fmt::Display
+{
+    pub fn print_inorder(&self) {
+        // PART 1.5 print in-order traversal of tree
+        println!("-------- Tree In-Order -------");
+        if let Some(ptr) = &self.root {
+            let root = ptr.as_ref().borrow();
+            root.print_inorder_node();
+        }
+        else {
+            println!("Empty tree");
+        }
+        println!("------------------------------");
+    }
+
+    pub fn print_structure(&self) {
+        // PART 1.7 print tree showing structure and colours
+        println!("------- Tree Structure -------");
+        if let Some(ptr) = &self.root {
+            let root = ptr.as_ref().borrow();
+            root.print_structure_node(0, NodeIsFrom::Neither);
+        }
+        else {
+            println!("Empty tree");
+        }       
+        println!("------------------------------");
+    }
+
+    pub fn count_leaves(&self) -> usize {
+        // PART 1.3 count leaves in tree
+        if let Some(ptr) = &self.root {
+            let root = ptr.as_ref().borrow();
+            return root.count_leaves_node();
+        }
+        else {
+            return 0;
         }
     }
 
+    pub fn is_empty(&self) -> bool {
+        // PART 1.6 check if tree empty
+        if let None = &self.root {
+            return true;
+        } else {
+            return false;
+        }
+    } 
+
+    pub fn get_height(&self) -> usize {
+        // PART 1.4 get height of tree
+        if let Some(ptr) = &self.root {
+            let root: std::cell::Ref<'_, RedBlackTreeNode<T>> = ptr.as_ref().borrow();
+            return root.get_height_node(1);
+        }
+        else {
+            return 0;
+        }
+    }
+
+    // traverse up the tree from the given node and return the root
+    fn climb_to_root(&self, node: Rc<RefCell<RedBlackTreeNode<T>>>) -> Rc<RefCell<RedBlackTreeNode<T>>> {
+        let parent = node.as_ref().borrow().get_parent();
+        if parent.is_none() {{}
+            node
+        } else {
+            let mut p = parent.unwrap();
+            let mut not_root = true;
+            while not_root {
+                let temp = p;
+                not_root = temp.as_ref().borrow().get_parent().is_some();
+                p = temp;
+            }
+            p
+        }
+    }
+
+    
     fn rotate_ins(&mut self, node: Rc<RefCell<RedBlackTreeNode<T>>>) {
         let node_side;
         let parent_side;
@@ -364,7 +510,7 @@ impl<T: Ord + Copy + std::fmt::Debug + std::fmt::Display> RedBlackTree<T> {
             self.rotate(parent_side, parent.clone());
             double_rotation = true;
         }
-        
+
         if double_rotation {
             let mut n = node.as_ref().borrow_mut();
             n.swap_color(grandparent.clone());
@@ -375,75 +521,14 @@ impl<T: Ord + Copy + std::fmt::Debug + std::fmt::Display> RedBlackTree<T> {
 
         self.rotate(!parent_side, grandparent);
     }
-    
-    fn rotate(&mut self, side: Side, node: Rc<RefCell<RedBlackTreeNode<T>>>) {
 
-        let mut n = node.as_ref().borrow_mut();
-
-        if let Some(child_ptr) = n.get_child(!side) {
-            let mut child = child_ptr.as_ref().borrow_mut();
-            let other_child = n.get_child(side);
-            n.set_child(!side, other_child);
-
-            if let Some(ptr) = n.get_child(side) {
-                let mut grandchild = ptr.as_ref().borrow_mut();
-                grandchild.set_parent(Some(side), Some(node.clone()));
-            }
-
-            child.set_parent(n.get_is_child().clone(), n.get_parent().clone());
-
-            if n.get_parent().is_none() {
-                self.set_root(child_ptr.clone());
-            } else {
-                let parent_ptr = n.get_parent().clone().unwrap();
-                let mut parent = parent_ptr.as_ref().borrow_mut();
-                if n.is_child(side) {
-                    parent.set_child(side, Some(child_ptr.clone()));
-                } else {
-                    parent.set_child(!side, Some(child_ptr.clone()));
-                }
-            }
-
-            child.set_child(side, Some(node.clone()));
-            n.set_parent(Some(side), Some(child_ptr.clone()));
-        }   
+    fn recolor_ins(&self, node: Rc<RefCell<RedBlackTreeNode<T>>>) {
+        let n = node.as_ref().borrow();
+        if n.get_grandparent().is_some() && n.get_uncle().is_some() {
+            n.get_grandparent().unwrap().as_ref().borrow_mut().set_color(NodeColor::Red);
+            n.get_parent().unwrap().as_ref().borrow_mut().set_color(NodeColor::Black);
+            n.get_uncle().unwrap().as_ref().borrow_mut().set_color(NodeColor::Black);
+        }
     }
 
-    // fn delete(&mut self, k: T) {
-        // similar to insert
-        // let root = self.get_root();
-        // bst_delete(root.clone(), k); // should return root here 
-        // if fix_tree {
-        //     // new_root = self.delete_fix(inserted_node); // replace with actual fix function
-        //     self.size -= 1;
-        // }
-        // new_root.as_ref().borrow_mut().set_color(NodeColor::Black);
-        // self.set_root(new_root);
-    // }
-
-    pub fn print_inorder(&self) {
-        // PART 1.5 print in-order traversal of tree
-        println!("-------- Tree In-Order -------");
-        if let Some(ptr) = &self.root {
-            let root = ptr.as_ref().borrow();
-            root.print_inorder_node();
-        }
-        else {
-            println!("Empty tree");
-        }
-        println!("------------------------------");
-    }
-
-    pub fn print_structure(&self) {
-        // PART 1.7 print tree showing structure and colours
-       println!("------- Tree Structure -------");
-        if let Some(ptr) = &self.root {
-            let root = ptr.as_ref().borrow();
-            root.print_structure_node(0, NodeIsFrom::Neither);
-        }
-        else {
-            println!("Empty tree");
-        }       
-        println!("------------------------------");
-    }
 }
