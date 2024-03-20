@@ -249,6 +249,40 @@ impl<T: Ord + std::fmt::Debug + std::fmt::Display + Clone> RedBlackTreeNode<T> {
         }
     }
 
+
+    fn count_leaves_node(&self) -> usize {
+        if self.is_leaf() {
+            return 1;
+        }
+        let mut count: usize = 0;
+        // otherwise, first go left for lower values
+        if let Some(ptr) = &self.left {
+            count += ptr.as_ref().borrow().count_leaves_node();
+        }
+        // then go right for higher values
+        if let Some(ptr) = &self.right {
+            count += ptr.as_ref().borrow().count_leaves_node();
+        }
+        return count;
+    }
+
+    fn get_height_node(&self, depth: usize) -> usize {
+        // recursive helper function for get_height of tree
+        if self.is_leaf() {
+            return depth;
+        }
+        // find max depth of either branch
+        let mut m: usize = usize::MIN;
+        // otherwise, first go left for lower values
+        if let Some(ptr) = &self.left {
+            m = std::cmp::max(m, ptr.as_ref().borrow().get_height_node(depth + 1));
+        }
+        // then go right for higher values
+        if let Some(ptr) = &self.right {
+            m = std::cmp::max(m, ptr.as_ref().borrow().get_height_node(depth + 1));
+        }
+        return m;
+    }
 }
 
 impl<T: Ord + Copy + std::fmt::Debug + std::fmt::Display> Tree<T> for RedBlackTree<T> {
@@ -342,32 +376,9 @@ impl<T: Ord + Copy + std::fmt::Debug + std::fmt::Display> Tree<T> for RedBlackTr
         else {
             self.rotate_ins(node.clone());
         }
-        // else if self.get_is_child(parent.clone()).unwrap() == Side::Left {
-        //     if self.get_is_child(node.clone()).unwrap() == Side::Right {
-        //         self.rotate(Side::Left, parent.clone());
-        //         parent = node.clone();
-        //     } 
-
-        //     self.rotate(Side::Right, grandparent.clone());
-
-        //     self.set_color(parent.clone(), NodeColor::Black);
-        //     self.set_color(grandparent.clone(), NodeColor::Red);
-
-        // } else {
-        //     if self.get_is_child(node.clone()).unwrap() == Side::Left {
-        //         self.rotate(Side::Right, parent.clone());
-        //         parent = node.clone();
-        //     } 
-
-        //     self.rotate(Side::Left, grandparent.clone());
-
-        //     self.set_color(parent.clone(), NodeColor::Black);
-        //     self.set_color(grandparent.clone(), NodeColor::Red);
-        // }
 
         self.climb_to_root(node.clone())
     }
-
 
 }
 
@@ -440,7 +451,7 @@ where
 
     pub fn print_structure(&self) {
         // PART 1.7 print tree showing structure and colours
-       println!("------- Tree Structure -------");
+        println!("------- Tree Structure -------");
         if let Some(ptr) = &self.root {
             let root = ptr.as_ref().borrow();
             root.print_structure_node(0, NodeIsFrom::Neither);
@@ -451,34 +462,34 @@ where
         println!("------------------------------");
     }
 
-    pub fn delete(&mut self, k: T) {
-        let search = self.bst_find(self.get_root().clone(), k);
-        if search.is_none() {
-            return;
+    pub fn count_leaves(&self) -> usize {
+        // PART 1.3 count leaves in tree
+        if let Some(ptr) = &self.root {
+            let root = ptr.as_ref().borrow();
+            return root.count_leaves_node();
         }
+        else {
+            return 0;
+        }
+    }
 
-        let node = search.unwrap();
-        let deleted_color;
-        let moved_up_node;
-
-        if self.left(node.clone()).is_none() || self.right(node.clone()).is_none() {
-            moved_up_node = self.replace(node.clone());
-            deleted_color = node.as_ref().borrow().get_color();
+    pub fn is_empty(&self) -> bool {
+        // PART 1.6 check if tree empty
+        if let None = &self.root {
+            return true;
         } else {
-            let right_child = self.right(node.clone()).unwrap();
-            let successor = self.find_min(right_child.clone());
-            let new_key = self.get_key(successor.clone());
-            self.set_key(node.clone(), new_key);
-            deleted_color = successor.as_ref().borrow().get_color();
-            moved_up_node = self.replace(successor.clone());
+            return false;
         }
+    } 
 
-        if deleted_color == NodeColor::Black {
-            self.delete_fix(moved_up_node.clone().unwrap());
-            if self.is_nil(moved_up_node.clone().unwrap()) {
-                let nil_parent = self.get_parent(moved_up_node.unwrap().clone());
-                self.replace_parent_child(nil_parent, node.clone(), None);
-            }
+    pub fn get_height(&self) -> usize {
+        // PART 1.4 get height of tree
+        if let Some(ptr) = &self.root {
+            let root: std::cell::Ref<'_, RedBlackTreeNode<T>> = ptr.as_ref().borrow();
+            return root.get_height_node(1);
+        }
+        else {
+            return 0;
         }
     }
 
@@ -556,13 +567,9 @@ where
         sibling_ptr.as_ref().borrow_mut().set_color(NodeColor::Black);
         parent_ptr.as_ref().borrow_mut().set_color(NodeColor::Red);
 
-        // if self.equal(Some(node.clone()), self.left(parent_ptr.clone())) {
-        //     self.rotate(Side::Left, parent_ptr.clone());
-        // } else {
-        //     self.rotate(Side::Right, parent_ptr.clone());
-        // }
         let left = self.left(parent_ptr.clone());
         let right = self.right(parent_ptr.clone());
+
         if self.equal(Some(node.clone()), left.clone()) {
             self.rotate(Side::Left, parent_ptr.clone());
         } else {
@@ -576,12 +583,15 @@ where
         let is_left_child = self.equal(Some(node.clone()), self.left(parent_ptr.clone()));
 
         if is_left_child && !self.is_red(self.right(sibling_ptr.clone())) {
+
             let sibling_left = self.left(sibling_ptr.clone()).unwrap();
             self.set_color(sibling_left.clone(), NodeColor::Black);
             self.set_color(sibling_ptr.clone(), NodeColor::Red);
             self.rotate(Side::Right, sibling_ptr.clone());
             sibling_ptr = self.right(parent_ptr.clone()).unwrap();
+
         } else if !is_left_child && !self.is_red(self.left(sibling_ptr.clone())) {
+
             let sibling_right = self.right(sibling_ptr.clone()).unwrap();
             self.set_color(sibling_right.clone(), NodeColor::Black);
             self.set_color(sibling_ptr.clone(), NodeColor::Red);
@@ -593,10 +603,13 @@ where
         self.set_color(parent_ptr.clone(), NodeColor::Black);
 
         if is_left_child {
+
             let sibling_right = self.right(sibling_ptr.clone()).unwrap();
             self.set_color(sibling_right.clone(), NodeColor::Black);
             self.rotate(Side::Left, parent_ptr.clone());
+
         } else {
+
             let sibling_left = self.right(sibling_ptr.clone()).unwrap();
             self.set_color(sibling_left.clone(), NodeColor::Black);
             self.rotate(Side::Right, parent_ptr.clone());
