@@ -154,54 +154,21 @@ impl<T: Ord> Node<T> for AvlTreeNode<T>{
     }   
 }
 
-// impl<T: Ord + std::fmt::Debug + std::fmt::Display>  AvlTreeNode<T> {
+impl<T: Ord + std::fmt::Debug + std::fmt::Display>  AvlTreeNode<T> {
 
-//     // Helper function to get the height of a node.
-//     fn get_height(&self) -> i32 {
-//         return self.height;
-//     }
-
-//     // Helper function to get the balance factor of a node.
-//     fn get_balance_factor(&self) -> i32 {
+    // Helper function to get the balance factor of a node.
+    fn get_balance_factor(&self) -> i32 {
 
         //declare left_height and right_height
-        // let left_height: i32=0;
-        // let right_height: i32=0;
+        let left_height: i32=0;
+        let right_height: i32=0;
 
-//         //borrow and get the left child height
-//         if let Some(left_node) = self.get_child(Side::Left){
-//             let left_node = left_node.as_ref().borrow_mut();
-//             let left_height = left_node.get_height();
-//         } else {
-//             let left_height = 0;
-//         }
-        
-//         //borrow and get the right child height
-//         if let Some(right_node) = self.get_child(Side::Right){
-//             let right_node = right_node.as_ref().borrow_mut();
-//             let right_height = right_node.get_height();
-//         } else {
-//             let right_height = 0;
-//         }
+        //if left is not none
     
-//         return left_height - right_height;
-//     }
+        return left_height - right_height;
+    }
 
-
-//     // Dont know if i need this function
-//     // helper to get the minimum value node
-//     // fn min_value_node(&self, node: AvlTreeNode<T>) -> AvlTreeNode<T> {
-
-//     //     //let mut current = node;
-
-//     //     //while current.left is not none{
-
-//     //     //  current = current.left;
-
-//     //     //return current;
-//     // }   
-
-//}
+}
 
 //     fn insert(&self, root:AvlTree<T>, key: T) {
 
