@@ -31,7 +31,7 @@ impl<T: Ord> Traversible<T> for AvlTreeNode<T> {
     }
 }
 
-impl<T: Ord> Node<T> for AvlTreeNode<T>{
+impl<T: Ord + Clone> Node<T> for AvlTreeNode<T>{
 
     fn new(key: T) -> Self {
         Self{
@@ -45,8 +45,8 @@ impl<T: Ord> Node<T> for AvlTreeNode<T>{
             }
     }
 
-    fn get_key(&self) -> &T {
-        &self.key
+    fn get_key(&self) -> T {
+        self.key.clone()
     }
 
     fn set_key(&mut self, val: T) {
@@ -149,7 +149,8 @@ impl<T: Ord> Node<T> for AvlTreeNode<T>{
     }   
 }
 
-impl<T: Ord + std::fmt::Debug + std::fmt::Display >  AvlTreeNode<T> {
+
+impl<T: Ord + std::fmt::Debug + std::fmt::Display +Copy>  AvlTreeNode<T> {
 
     fn get_height(&self) -> usize {
         self.height

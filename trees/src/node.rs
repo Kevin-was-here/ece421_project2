@@ -26,9 +26,9 @@ pub trait Traversible<T> {
     fn left(&self) -> &Option<Rc<RefCell<Self>>>;
     fn right(&self) -> &Option<Rc<RefCell<Self>>>;
 }
-pub trait Node<T>: Traversible<T> {
+pub trait Node<T: Clone>: Traversible<T> {
     fn new(key: T) -> Self;
-    fn get_key(&self) -> &T; 
+    fn get_key(&self) -> T; 
     fn set_key(&mut self, val: T);
 
     fn greater(&self, val: T) -> bool;
@@ -39,9 +39,9 @@ pub trait Node<T>: Traversible<T> {
     fn get_is_child(&self) -> &Option<Side>;
     fn is_child(&self, side: Side) -> bool;
     fn take_child(&mut self, side: Side) -> Option<Rc<RefCell<Self>>>;
-    fn set_child(&mut self, side: Side, node: Option<Rc<RefCell<Self>>>);
+    fn set_child(&mut self, side: Side, child: Option<Rc<RefCell<Self>>>);
 
-    fn set_parent(&mut self, is_child: Option<Side>, node: Option<Rc<RefCell<Self>>>);
+    fn set_parent(&mut self, is_child: Option<Side>, parent: Option<Rc<RefCell<Self>>>);
     fn get_parent(&self) -> Option<Rc<RefCell<Self>>>;
     fn get_parent_mut(&mut self) -> &mut Option<Rc<RefCell<Self>>>;
 
