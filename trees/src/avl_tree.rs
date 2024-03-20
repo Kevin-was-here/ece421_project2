@@ -7,13 +7,14 @@ use std::borrow::{Borrow, BorrowMut};
 type MaybeAvlTree<T> = Option<Rc<RefCell<AvlTreeNode<T>>>>;
 
 #[derive(Debug)]
-struct AvlTreeNode<T> {
+pub struct AvlTreeNode<T> {
     pub key: T,
     pub parent: MaybeAvlTree<T>,
     pub height: i32,
     left: MaybeAvlTree<T>,
     right: MaybeAvlTree<T>,
     is_child: Option<Side>,
+    pub balance_factor: i32,
 }
 
 pub struct AvlTree<T> {
@@ -39,6 +40,7 @@ impl<T: Ord> Node<T> for AvlTreeNode<T>{
             parent: None,
             height: 1,
             is_child: None,
+            balance_factor: 0,
             }
     }
 
@@ -156,11 +158,6 @@ impl<T: Ord> Node<T> for AvlTreeNode<T>{
 
 impl<T: Ord + std::fmt::Debug + std::fmt::Display>  AvlTreeNode<T> {
 
-    // Helper function to get the height of a node.
-    fn get_height(&self) -> i32 {
-        return self.height;
-    }
-
     // Helper function to get the balance factor of a node.
     fn get_balance_factor(&self) -> i32 {
 
@@ -201,23 +198,37 @@ impl<T: Ord + std::fmt::Debug + std::fmt::Display>  AvlTreeNode<T> {
     //     //return current;
     // }   
 
+}
 
-    fn insert(&self, root:AvlTree<T>, key: T) {
+// AVL Tree implementation
+/// Handles insertion, deletion and rotation and more 
+impl<T: Ord + Copy + std::fmt::Debug + std::fmt::Display> Tree<T> for AvlTree<T> {
 
-        //if root is none
+    type Node = AvlTreeNode<T>;
+
+    fn new() -> Self {
+        Self {
+            root: None,
+        }
+    }
+
+    fn get_root(&self) -> &MaybeAvlTree<T> {
+        &self.root
+    }
+
+    fn set_root(&mut self, node: MaybeAvlTree<T>) {
+        self.root = node;
+    }
+
+    fn insert_fix(&mut self, node: Rc<RefCell<AvlTreeNode<T>>>) -> Rc<RefCell<AvlTreeNode<T>>> {
+        let mut current_node = node.clone();
         
-        //  return AvlTreeNode::new(key);
-        
-        //elif key < root.key
-        
-        //  root.left = root.left.insert(key);
+        //update the height of all nodes in the path
+        self.update_height(current_node.clone());
 
-        //else
+        let mut n = current_node.as_ref().borrow_mut();
+        let mut parent = n.get_parent().clone();
         
-        //  root.right = root.right.insert(key);
-
-        //root.height = 1 + max(root.left.height, root.right.height);
-
         //get balance factor
         //let bf = self.get_balance_factor(root);
 
@@ -241,37 +252,151 @@ impl<T: Ord + std::fmt::Debug + std::fmt::Display>  AvlTreeNode<T> {
 
         //return self.left_rotate();
 
+        return node;
+    }
+    
+
+    fn rotate(&mut self, side: Side, node: Rc<RefCell<Self::Node>>) {
+        
+        //if side left, rotate left
+            //let &mut cur_right = self.right;
+
+            //let &mut cur_right_left_child = cur_right.left;
+
+            //cur_right.left = self;  
+            //self.right = cur_right_left_child;
+
+            //self.height = 1 + max(self.left.height, self.right.height);
+            //cur_right.height = 1 + max(cur_right.left.height, cur_right.right.height);
+
+            //return cur_right;
+
+        //if side right, rotate right
+            //let &mut cur_left = self.left;
+
+            //let &mut cur_left_right_child = cur_left.right;
+
+            //cur_left.right = self;  
+            //self.left = cur_left_right_child;
+
+            //self.height = 1 + max(self.left.height, self.right.height);
+            //cur_left.height = 1 + max(cur_left.left.height, cur_left.right.height);
+
+            //return cur_left;
+        
+    }
+    
+
+}
+
+impl<T: Ord> AvlTree<T> where 
+T: Ord + Copy + std::fmt::Debug + std::fmt::Display
+{
+    
+    fn update_height(&self, node: Rc<RefCell<AvlTreeNode<T>>>) {
+        // let mut node = node.as_ref().borrow_mut();
+        let mut current_node = node.clone();
+        loop{
+            if let Some(ptr) = current_node.as_ref().borrow().get_parent() {
+                let parent = ptr.as_ref().borrow();
+                println!("Updating height of node: {:?}", parent.key);
+                let mut left_height: i32 = 0;
+                let mut right_height: i32 = 0;
+
+                if let Some(leftptr) = parent.get_child(Side::Left){  
+                    let left_node = leftptr.as_ref().borrow();
+                    left_height = left_node.get_height() as i32; // Convert usize to i32
+                } else {
+                    left_height = 0;
+                }
+
+                if let Some(rightptr) = parent.get_child(Side::Right){
+                    let right_node = rightptr.as_ref().borrow();
+                    right_height = right_node.get_height() as i32; // Convert usize to i32
+                } else {
+                    right_height = 0;
+                }
+                drop(parent);
+                let mut parent_mut = ptr.as_ref().borrow_mut();
+                //update the height of the node
+                parent_mut.height = 1 + std::cmp::max(left_height, right_height);
+
+                //recurse to the parent node
+                current_node = ptr.clone();
+
+            }else{
+                break;
+            }
+        }
+
     }
 
-    fn left_rotate(&self) {
+    // ///Start from the root and traverse the tree to 
+    // /// find the node to be deleted
+    // fn delete(&self, root: AvlTree<T>, key: T) {
 
-        //let &mut cur_right = self.right;
+    //     //if root is none
 
-        //let &mut cur_right_left_child = cur_right.left;
+    //     //  return root;
 
-        //cur_right.left = self;  
-        //self.right = cur_right_left_child;
+    //     //elif key < root.key
 
-        //self.height = 1 + max(self.left.height, self.right.height);
-        //cur_right.height = 1 + max(cur_right.left.height, cur_right.right.height);
+    //     //  root.left = root.left.delete(key);
 
-        //return cur_right;
-    }
+    //     //else if key > root.key
 
-    fn right_rotate(&self) {
+    //     //  root.right = root.right.delete(key);
 
-        //let &mut cur_left = self.left;
+    //     //else
 
-        //let &mut cur_left_right_child = cur_left.right;
+    //     //   if root.left is none
 
-        //cur_left.right = self;  
-        //self.left = cur_left_right_child;
+    //     //      temp = root.right;
 
-        //self.height = 1 + max(self.left.height, self.right.height);
-        //cur_left.height = 1 + max(cur_left.left.height, cur_left.right.height);
+    //     //      root = None;
 
-        //return cur_left;
-    }
+    //     //      return temp;
+
+    //     //    elif root.right is none
+        
+    //     //      temp = root.left;
+
+    //     //      root = None;
+
+    //     //      return temp;
+
+    //     //    temp = self.min_value_node(root.right);
+
+    //     //    root.key = temp.key;
+
+    //     //    root.right = root.right.delete(temp.key);
+
+    //     //  root.height = 1 + max(root.left.height, root.right.height);
+
+    //     //  let bf = self.get_balance_factor(root);
+
+    //     //  if bf > 1 and self.get_balance_factor(root.left) >= 0
+
+    //     //      return self.right_rotate();
+
+    //     //  if bf > 1 and self.get_balance_factor(root.left) < 0
+
+    //     //      root.left = root.left.left_rotate();
+
+    //     //      return self.right_rotate();
+
+    //     //  if bf < -1 and self.get_balance_factor(root.right) <= 0
+
+    //     //      return self.left_rotate();
+
+    //     //  if bf < -1 and self.get_balance_factor(root.right) > 0
+
+    //     //      root.right = root.right.right_rotate();
+
+    //     //      return self.left_rotate();
+
+    //     //  return root;
+    // }
 
     //fn search(&self,root:AvlTree<T>, key: T) -> AvlTreeNode<T> {
         
@@ -291,90 +416,5 @@ impl<T: Ord + std::fmt::Debug + std::fmt::Display>  AvlTreeNode<T> {
 
         //return current;
     //}
-
-    ///Start from the root and traverse the tree to 
-    /// find the node to be deleted
-    fn delete(&self, root: AvlTree<T>, key: T) {
-
-        //if root is none
-
-        //  return root;
-
-        //elif key < root.key
-
-        //  root.left = root.left.delete(key);
-
-        //else if key > root.key
-
-        //  root.right = root.right.delete(key);
-
-        //else
-
-        //   if root.left is none
-
-        //      temp = root.right;
-
-        //      root = None;
-
-        //      return temp;
-
-        //    elif root.right is none
-        
-        //      temp = root.left;
-
-        //      root = None;
-
-        //      return temp;
-
-        //    temp = self.min_value_node(root.right);
-
-        //    root.key = temp.key;
-
-        //    root.right = root.right.delete(temp.key);
-
-        //  root.height = 1 + max(root.left.height, root.right.height);
-
-        //  let bf = self.get_balance_factor(root);
-
-        //  if bf > 1 and self.get_balance_factor(root.left) >= 0
-
-        //      return self.right_rotate();
-
-        //  if bf > 1 and self.get_balance_factor(root.left) < 0
-
-        //      root.left = root.left.left_rotate();
-
-        //      return self.right_rotate();
-
-        //  if bf < -1 and self.get_balance_factor(root.right) <= 0
-
-        //      return self.left_rotate();
-
-        //  if bf < -1 and self.get_balance_factor(root.right) > 0
-
-        //      root.right = root.right.right_rotate();
-
-        //      return self.left_rotate();
-
-        //  return root;
-    }
-
-}
-
-
-impl<T: Ord + std::fmt::Debug + std::fmt::Display> AvlTree<T> {
-    pub fn new() -> Self {
-        Self {
-            root: None,
-        }
-    }
-
-    fn get_root(&self) -> MaybeAvlTree<T> {
-        self.root.clone()
-    }
-
-    fn set_root(&mut self, node: MaybeAvlTree<T>) {
-        self.root = node;
-    }
 
 }

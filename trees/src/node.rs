@@ -2,6 +2,7 @@ use std::ops::Not;
 use std::borrow::{Borrow, BorrowMut};
 use std::cell::RefCell;
 use std::rc::Rc;
+use std::cmp::max;
 
 #[derive(Clone, Debug, PartialEq, Copy)]
 pub enum Side {
@@ -50,4 +51,15 @@ pub trait Node<T>: Traversible<T> {
     
     fn is_leaf(&self) -> bool;
 
+    fn get_height(&self) -> usize {
+        let left = match self.left() {
+            Some(n) => n.as_ref().borrow().get_height(),
+            None => 0,
+        };
+        let right = match self.right() {
+            Some(n) => n.as_ref().borrow().get_height(),
+            None => 0,
+        };
+        max(left, right) + 1
+    }
 }
