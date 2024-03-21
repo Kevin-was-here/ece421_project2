@@ -66,6 +66,13 @@ fn test_avl(){
     avl.insert(11);
     avl.insert(12);
     //println!("AVL");
+
+    let mut avl4:AvlTree<char> = AvlTree::new();
+    avl4.insert('a');
+    avl4.insert('d');
+    avl4.insert('c');
+    avl4.insert('v');
+    avl4.print_inorder();
 }
 
 fn test_search(){

@@ -1,7 +1,9 @@
 # ECE 421 Project 2 
 # Trees, Trees and More Trees
 
-This is a 
+This is a "company task" (in class project) on building Rust data structures to provide faster, more efficient data structure solutions.
+
+Within the project contains an implementation of [Red Black Tree](https://en.wikipedia.org/wiki/Red-black_tree) and [AVL tree](https://en.wikipedia.org/wiki/AVL_tree).
 
 ## Authors
 Kevin H, Castor S, Nhung N
@@ -12,8 +14,8 @@ Kevin H, Castor S, Nhung N
 - `git` to clone this repo
 
 **cargo packages** 
-- `clap` = { version = "4.5.0", features = ["derive"] } - Used to handle commandline inputs and help menu.
--  
+- `criterion` = { version = "0.4", features = ["html_reports"] } - Used to do benchmarking.
+  
 
 ## Project Setup
 To set up this project, start by cloning the code from [here](https://github.com/Kevin-was-here/ece421_project2) (or open/extract the zip/tar ball)
@@ -30,4 +32,8 @@ This may take a second on the first attempt as cargo is initalizing.
 
 ## Useage Instructions
 
-1. Follow the instructions in [project setup](#project-setup) and obtain the executable `trees.exe`
+1. Follow the instructions in [project setup](#project-setup) and obtain the executable `trees.exe` in the `./target` file
+2. execute the program by running 
+```
+> .\trees.exe
+```

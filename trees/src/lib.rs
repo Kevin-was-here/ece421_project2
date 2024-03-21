@@ -1,5 +1,5 @@
-mod tree;
-mod node;
-mod rb_tree;
-mod avl_tree;
+pub mod tree;
+pub mod node;
+pub mod rb_tree;
+pub mod avl_tree;
 mod cli;

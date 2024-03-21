@@ -8,14 +8,12 @@ use lib::{rb_tree::RedBlackTree, tree::Tree, avl_tree::AvlTree, node::Node};
 
 use std::iter;
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
-use rand::{thread_rng, Rng};
 
 //---------- RB Tree ---------------
 fn bench_rb_tree_insert(c: &mut Criterion){
 
     let mut group = c.benchmark_group("bench_rb_tree");
 
-    let mut rng = rand::thread_rng();
     //create an empty tree
     let mut rb_tree = RedBlackTree::new();
 
@@ -72,7 +70,6 @@ fn bench_avl_tree_insert(c: &mut Criterion){
 
     let mut group = c.benchmark_group("bench_avl_tree");
 
-    let mut rng = rand::thread_rng();
     //create an empty tree
     let mut avl_tree = AvlTree::new();
 
