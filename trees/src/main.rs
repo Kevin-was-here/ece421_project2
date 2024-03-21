@@ -70,7 +70,7 @@ fn test_avl(){
 }
 
 fn main() {
-    test_avl();
-    test_rb();
-    //cli::run_cli();
+    //test_avl();
+    //test_rb();
+    cli::run_cli();
 }
