@@ -588,6 +588,11 @@ impl<T: Ord + Copy + std::fmt::Debug + std::fmt::Display> Tree<T> for AvlTree<T>
             return false;
         }
     } 
+
+    
+    fn delete(&mut self, key: T) {
+        unimplemented!("Deletion is not implemented for AVL Tree");
+    }
 }
 
 

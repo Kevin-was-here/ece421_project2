@@ -32,6 +32,8 @@ pub trait Tree<T: Ord + Copy + std::fmt::Debug + std::fmt::Display> {
 
     fn count_leaves(&self) -> usize;
 
+    fn delete(&mut self, k: T);
+
     // ========== other functions
 
     fn get_root(&self) -> &Option<Rc<RefCell<Self::Node>>>;

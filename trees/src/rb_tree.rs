@@ -377,6 +377,38 @@ impl<T: Ord + Copy + std::fmt::Debug + std::fmt::Display> Tree<T> for RedBlackTr
         self.climb_to_root(node.clone())
     }
 
+    fn delete(&mut self, k: T) {
+
+        let search = self.bst_find(self.get_root().clone(), k);
+        if search.is_none() {
+            return;
+        }
+
+        let node = search.unwrap();
+        let deleted_color;
+        let moved_up_node;
+
+        if self.left(node.clone()).is_none() || self.right(node.clone()).is_none() {
+            moved_up_node = self.replace(node.clone());
+            deleted_color = node.as_ref().borrow().get_color();
+        } else {
+            let right_child = self.right(node.clone()).unwrap();
+            let successor = self.find_min(right_child.clone());
+            let new_key = self.get_key(successor.clone());
+            self.set_key(node.clone(), new_key);
+            deleted_color = successor.as_ref().borrow().get_color();
+            moved_up_node = self.replace(successor.clone());
+        }
+
+        if deleted_color == NodeColor::Black {
+            self.delete_fix(moved_up_node.clone().unwrap());
+            if self.is_nil(moved_up_node.clone().unwrap()) {
+                let nil_parent = self.get_parent(moved_up_node.unwrap().clone());
+                self.replace_parent_child(nil_parent, node.clone(), None);  
+            }
+        }   
+    }
+
     fn print_inorder(&self) {
         // PART 1.5 print in-order traversal of tree
         println!("-------- Tree In-Order -------");
@@ -433,7 +465,6 @@ impl<T: Ord + Copy + std::fmt::Debug + std::fmt::Display> Tree<T> for RedBlackTr
             return 0;
         }
     }
-
 }
 
 impl<T> CLIPrintable for RedBlackTree<T> {
@@ -559,37 +590,6 @@ where
             self.delete_fix_case_5(node.clone(), sibling.clone());
         }
 
-    }
-
-    pub fn delete(&mut self, k: T) {
-        let search = self.bst_find(self.get_root().clone(), k);
-        if search.is_none() {
-            return;
-        }
-
-        let node = search.unwrap();
-        let deleted_color;
-        let moved_up_node;
-
-        if self.left(node.clone()).is_none() || self.right(node.clone()).is_none() {
-            moved_up_node = self.replace(node.clone());
-            deleted_color = node.as_ref().borrow().get_color();
-        } else {
-            let right_child = self.right(node.clone()).unwrap();
-            let successor = self.find_min(right_child.clone());
-            let new_key = self.get_key(successor.clone());
-            self.set_key(node.clone(), new_key);
-            deleted_color = successor.as_ref().borrow().get_color();
-            moved_up_node = self.replace(successor.clone());
-        }
-
-        if deleted_color == NodeColor::Black {
-            self.delete_fix(moved_up_node.clone().unwrap());
-            if self.is_nil(moved_up_node.clone().unwrap()) {
-                let nil_parent = self.get_parent(moved_up_node.unwrap().clone());
-                self.replace_parent_child(nil_parent, node.clone(), None);  
-            }
-        }   
     }
 
     fn delete_fix_case_1(&mut self, node: Rc<RefCell<RedBlackTreeNode<T>>>, sibling: Rc<RefCell<RedBlackTreeNode<T>>>) {
