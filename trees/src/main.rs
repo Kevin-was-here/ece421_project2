@@ -11,7 +11,7 @@ use crate::avl_tree::*;
 //use crate::avl_tree::*;
 use crate::cli::*;
 
-fn test() {
+fn test_rb() {
     let mut tree = RedBlackTree::new();
     tree.insert(2);
     tree.insert(4);
@@ -41,6 +41,10 @@ fn test() {
     tree2.print_structure();
     println!("num leaves: {}", tree2.count_leaves());    
    
+}
+
+fn test_avl(){
+
     let mut avl:AvlTree<i32> = AvlTree::new();
     avl.insert(2);
     avl.insert(4);
@@ -48,8 +52,25 @@ fn test() {
     avl.insert(5);
     avl.insert(6);
     println!("AVL");
+
+    let mut avl:AvlTree<i32> = AvlTree::new();
+    avl.insert(1);
+    avl.insert(2);
+    avl.insert(3);
+    avl.insert(4);
+    avl.insert(5);
+    avl.insert(6);
+    avl.insert(7);
+    avl.insert(8);
+    avl.insert(9);
+    avl.insert(10);
+    avl.insert(11);
+    avl.insert(12);
+    println!("AVL");
 }
 
 fn main() {
+    //test_avl();
+    //test_rb();
     cli::run_cli();
 }
