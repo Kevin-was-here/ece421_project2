@@ -1,9 +1,34 @@
 use std::io::stdin;
 use crate::rb_tree::*;
 use crate::tree::*;
-//use crate::avl_tree::*;
+use crate::avl_tree::*;
+
+// type names for some basic node types
+pub trait CLIPrintable {
+    fn pretty_name() -> &'static str;
+}
+
+impl CLIPrintable for i8 {
+    fn pretty_name() -> &'static str {
+        "8-bit integer"
+    }
+}
+
+impl CLIPrintable for i32 {
+    fn pretty_name() -> &'static str {
+        "32-bit integer"
+    }
+}
+
+impl CLIPrintable for char {
+    fn pretty_name() -> &'static str {
+        "character"
+    }
+}
+
 
 fn get_menu_choice(menu: &str, n: u32, ret: &mut u32) {
+    // obtaining an integer selection from CLI menu
     loop {
         println!("{}\n", menu);
         let mut s: String = "".to_string();
@@ -26,9 +51,11 @@ fn get_menu_choice(menu: &str, n: u32, ret: &mut u32) {
     }
 }
 
-fn get_i32(ret: &mut i32) {
+fn get_gen_type<T: std::str::FromStr + CLIPrintable>(ret: &mut T) {
+    // read and format a generic type from the console
     loop {
-        println!("Please enter a 32-bit integer (i32) value.");
+        let name = T::pretty_name();
+        println!("Please enter a node value of type {name}.");
         let mut s: String = "".to_string();
 
         match stdin().read_line(&mut s) {
@@ -36,7 +63,7 @@ fn get_i32(ret: &mut i32) {
             Ok(_) => {}
         };
     
-        match s.trim().parse::<i32>() {
+        match s.trim().parse::<T>() {
             Err(_) => println!("That input isn't valid, please try again."),
             Ok(p) => {
                 *ret = p;
@@ -63,10 +90,14 @@ fn get_continue() {
     }
 }
 
-fn rb_loop() {
-    let mut tree: RedBlackTree<i32> = RedBlackTree::new();
+fn tree_loop<T, R>() where
+    T: std::cmp::Ord + Copy + std::fmt::Debug + std::fmt::Display
+        + std::default::Default + std::str::FromStr + CLIPrintable,
+    R: Tree<T> + CLIPrintable
+{
+    let mut tree: R = R::new();
 
-    println!("> A new Red-Black Tree has been created.");
+    println!("> A new {} with {} keys has been created.", R::pretty_name(), T::pretty_name());
 
     loop {
         let mut c = 0;
@@ -84,15 +115,15 @@ fn rb_loop() {
         match c {
             1u32 => {
                 // insert
-                let mut node_val = 0;
-                get_i32(&mut node_val);
+                let mut node_val: T = T::default();
+                get_gen_type(&mut node_val);
                 tree.insert(node_val);
                 println!("> The node {node_val} was inserted.\n");
             }   
             2u32 => {
                 // delete
                 let mut node_val = 0;
-                get_i32(&mut node_val);
+                get_gen_type(&mut node_val);
                 // tree.delete(node_val);
                 println!("> This feature is not yet implemented.\n");
             }
@@ -130,6 +161,7 @@ fn rb_loop() {
     }
 }
 
+#[allow(dead_code)]
 pub fn run_cli() {
     // choose a type of tree
 
@@ -139,15 +171,31 @@ pub fn run_cli() {
 1. Red-Black Tree
 2. AVL Tree", 2, &mut c);
 
-        if c == 1u32 {
-            rb_loop();
-        }
-        else if c == 2u32 {
-            println!("> This feature is not yet implemented.\n");
-            // avl_loop();
-        }
-        else {
-            println!("Something went wrong, please try again.\n")
+        let mut t = 0;
+        get_menu_choice("Please select a type of node key to use with the tree:
+1. i8 (8-bit integer)
+2. i32 (32-bit integer)
+3. char (character)", 3, &mut t);
+
+        // enter loop with a tree of user's choice
+        match c {
+            1u32 => {
+                match t {
+                    1u32 => tree_loop::<i8, RedBlackTree<i8>>(),
+                    2u32 => tree_loop::<i32, RedBlackTree<i32>>(),
+                    3u32 => tree_loop::<char, RedBlackTree<char>>(),
+                    _ => println!("Something went wrong, please try again.\n")
+                }
+            },
+            2u32 => {
+                match t {
+                    1u32 => tree_loop::<i8, AvlTree<i8>>(),
+                    2u32 => tree_loop::<i32, AvlTree<i32>>(),
+                    3u32 => tree_loop::<char, AvlTree<char>>(),
+                    _ => println!("Something went wrong, please try again.\n")
+                }
+            }
+            _ => println!("Something went wrong, please try again.\n")
         }
     }
 }

@@ -8,14 +8,8 @@ use std::cmp::max;
 pub trait Tree<T: Ord + Copy + std::fmt::Debug + std::fmt::Display> {
     type Node: Node<T>;
     fn new() -> Self;
-    fn get_root(&self) -> &Option<Rc<RefCell<Self::Node>>>;
-    fn set_root(&mut self, node: Option<Rc<RefCell<Self::Node>>>);
-    // fn get_height(&self) -> usize;
-    // fn is_empty(&self) -> bool;
-    fn insert_fix(&mut self, node: Rc<RefCell<Self::Node>>) -> Rc<RefCell<Self::Node>>;
-    // fn delete_fix(&mut self, node: Rc<RefCell<Self::Node>>);   
 
-    fn rotate(&mut self, side: Side, node: Rc<RefCell<Self::Node>>);
+    // ========== functions used by CLI
 
     fn insert(&mut self, key: T) {
         // first insert node as though in a BST
@@ -27,6 +21,23 @@ pub trait Tree<T: Ord + Copy + std::fmt::Debug + std::fmt::Display> {
         };
         self.set_root(new_root.clone());
     }
+
+    fn get_height(&self) -> usize;
+
+    fn print_inorder(&self);
+
+    fn is_empty(&self) -> bool;
+    
+    fn print_structure(&self);
+
+    fn count_leaves(&self) -> usize;
+
+    // ========== other functions
+
+    fn get_root(&self) -> &Option<Rc<RefCell<Self::Node>>>;
+    fn set_root(&mut self, node: Option<Rc<RefCell<Self::Node>>>);
+    fn insert_fix(&mut self, node: Rc<RefCell<Self::Node>>) -> Rc<RefCell<Self::Node>>;
+    fn rotate(&mut self, side: Side, node: Rc<RefCell<Self::Node>>);
 
     fn bst_insert(&mut self, root: Option<Rc<RefCell<Self::Node>>>, k: T) ->  Option<Rc<RefCell<Self::Node>>> {
         let mut node = root.clone();
@@ -63,6 +74,12 @@ pub trait Tree<T: Ord + Copy + std::fmt::Debug + std::fmt::Display> {
         rc.clone()
     }
 
+    fn bst_search(&self, key:T) -> bool{
+        let root = self.get_root().clone();
+        let node = self.bst_find(root.clone(), key);
+        node.is_some()
+    }
+    
     fn bst_find(&self, root: Option<Rc<RefCell<Self::Node>>>, k: T) -> Option<Rc<RefCell<Self::Node>>> {
         let mut current_node = root;
         // Find then replace

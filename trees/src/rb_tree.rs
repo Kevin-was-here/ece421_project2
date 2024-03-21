@@ -1,5 +1,6 @@
 use super::tree::*;
 use super::node::*;
+use crate::cli::CLIPrintable;
 use std::borrow::{Borrow, BorrowMut};
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -8,13 +9,6 @@ use std::rc::Rc;
 enum NodeColor {
     Red,
     Black,
-}
-
-// used by print_node_structure to print branches nicely
-enum NodeIsFrom {
-    Left,
-    Right,
-    Neither
 }
 
 type MaybeRedBlackTree<T> = Option<Rc<RefCell<RedBlackTreeNode<T>>>>;
@@ -34,12 +28,7 @@ pub struct RedBlackTree<T> {
 }
 
 impl<T: Ord> Traversible<T> for RedBlackTreeNode<T> {
-    // fn left_mut(&mut self) -> &mut Option<Rc<RefCell<Self>>> {
-    //     return self.left.borrow_mut();
-    // }
-    // fn right_mut(&mut self) -> &mut Option<Rc<RefCell<Self>>> {
-    //     return self.right.borrow_mut();
-    // }
+
     fn left(&self) -> &Option<Rc<RefCell<Self>>> {
         return &self.left;
     }
@@ -85,6 +74,7 @@ impl<T: Ord + Clone> Node<T> for RedBlackTreeNode<T> {
         match side {
             Side::Left => self.left.clone(),
             Side::Right => self.right.clone(),
+            Side::Neither => None
         }
     }
 
@@ -106,7 +96,8 @@ impl<T: Ord + Clone> Node<T> for RedBlackTreeNode<T> {
     fn take_child(&mut self, side: Side) -> MaybeRedBlackTree<T> {
         match side {
             Side::Left => self.left.take(),
-            Side::Right => self.right.take(),           
+            Side::Right => self.right.take(),
+            Side::Neither => None
         }
     }
 
@@ -115,6 +106,7 @@ impl<T: Ord + Clone> Node<T> for RedBlackTreeNode<T> {
         match side {
             Side::Left => self.left = child,
             Side::Right => self.right = child,
+            Side::Neither => {}
         }
     }
 
@@ -223,10 +215,10 @@ impl<T: Ord + std::fmt::Debug + std::fmt::Display + Clone> RedBlackTreeNode<T> {
         }
     }
 
-    fn print_structure_node(&self, depth: usize, from: NodeIsFrom) {
+    fn print_structure_node(&self, depth: usize, from: Side) {
         // first go left...
         if let Some(ptr) = &self.left {
-            ptr.as_ref().borrow().print_structure_node(depth + 1, NodeIsFrom::Left);            
+            ptr.as_ref().borrow().print_structure_node(depth + 1, Side::Left);            
         }
         
         // print this node with prefix
@@ -234,9 +226,9 @@ impl<T: Ord + std::fmt::Debug + std::fmt::Display + Clone> RedBlackTreeNode<T> {
         let colour = if self.is_red() { 'R' } else { 'B' };
         // couple characters that make tree look 'smooth'
         let smooth = match from {
-            NodeIsFrom::Left => "┌───────┘",
-            NodeIsFrom::Neither => "",
-            NodeIsFrom::Right => "└───────┐"
+            Side::Left => "┌───────┘",
+            Side::Neither => "",
+            Side::Right => "└───────┐"
         };
         // case for depth to make lines line up nice
         let space = if depth == 0 { 0 } else { (depth - 1) * 8 };
@@ -245,7 +237,7 @@ impl<T: Ord + std::fmt::Debug + std::fmt::Display + Clone> RedBlackTreeNode<T> {
         
         // then go right...
         if let Some(ptr) = &self.right {
-            ptr.as_ref().borrow().print_structure_node(depth + 1, NodeIsFrom::Right);
+            ptr.as_ref().borrow().print_structure_node(depth + 1, Side::Right);
         }
     }
 
@@ -381,6 +373,69 @@ impl<T: Ord + Copy + std::fmt::Debug + std::fmt::Display> Tree<T> for RedBlackTr
         self.climb_to_root(node.clone())
     }
 
+    fn print_inorder(&self) {
+        // PART 1.5 print in-order traversal of tree
+        println!("-------- Tree In-Order -------");
+        if let Some(ptr) = &self.root {
+            let root = ptr.as_ref().borrow();
+            root.print_inorder_node();
+        }
+        else {
+            println!("Empty tree");
+        }
+        println!("------------------------------");
+    }
+
+    fn print_structure(&self) {
+        // PART 1.7 print tree showing structure and colours
+        println!("------- Tree Structure -------");
+        if let Some(ptr) = &self.root {
+            let root = ptr.as_ref().borrow();
+            root.print_structure_node(0, Side::Neither);
+        }
+        else {
+            println!("Empty tree");
+        }       
+        println!("------------------------------");
+    }
+
+    fn count_leaves(&self) -> usize {
+        // PART 1.3 count leaves in tree
+        if let Some(ptr) = &self.root {
+            let root = ptr.as_ref().borrow();
+            return root.count_leaves_node();
+        }
+        else {
+            return 0;
+        }
+    }
+
+    fn is_empty(&self) -> bool {
+        // PART 1.6 check if tree empty
+        if let None = &self.root {
+            return true;
+        } else {
+            return false;
+        }
+    } 
+
+    fn get_height(&self) -> usize {
+        // PART 1.4 get height of tree
+        if let Some(ptr) = &self.root {
+            let root: std::cell::Ref<'_, RedBlackTreeNode<T>> = ptr.as_ref().borrow();
+            return root.get_height_node(1);
+        }
+        else {
+            return 0;
+        }
+    }
+
+}
+
+impl<T> CLIPrintable for RedBlackTree<T> {
+    fn pretty_name() -> &'static str {
+        "Red-Black Tree"
+    }
 }
 
 impl<T> RedBlackTree<T> 
@@ -437,63 +492,6 @@ where
         node.as_ref().borrow().is_nil()
     }
 
-    pub fn print_inorder(&self) {
-        // PART 1.5 print in-order traversal of tree
-        println!("-------- Tree In-Order -------");
-        if let Some(ptr) = &self.root {
-            let root = ptr.as_ref().borrow();
-            root.print_inorder_node();
-        }
-        else {
-            println!("Empty tree");
-        }
-        println!("------------------------------");
-    }
-
-    pub fn print_structure(&self) {
-        // PART 1.7 print tree showing structure and colours
-        println!("------- Tree Structure -------");
-        if let Some(ptr) = &self.root {
-            let root = ptr.as_ref().borrow();
-            root.print_structure_node(0, NodeIsFrom::Neither);
-        }
-        else {
-            println!("Empty tree");
-        }       
-        println!("------------------------------");
-    }
-
-    pub fn count_leaves(&self) -> usize {
-        // PART 1.3 count leaves in tree
-        if let Some(ptr) = &self.root {
-            let root = ptr.as_ref().borrow();
-            return root.count_leaves_node();
-        }
-        else {
-            return 0;
-        }
-    }
-
-    pub fn is_empty(&self) -> bool {
-        // PART 1.6 check if tree empty
-        if let None = &self.root {
-            return true;
-        } else {
-            return false;
-        }
-    } 
-
-    pub fn get_height(&self) -> usize {
-        // PART 1.4 get height of tree
-        if let Some(ptr) = &self.root {
-            let root: std::cell::Ref<'_, RedBlackTreeNode<T>> = ptr.as_ref().borrow();
-            return root.get_height_node(1);
-        }
-        else {
-            return 0;
-        }
-    }
-
     fn replace(&mut self, node: Rc<RefCell<RedBlackTreeNode<T>>>) -> Option<Rc<RefCell<RedBlackTreeNode<T>>>> {
         let parent = self.get_parent(node.clone());
 
@@ -531,7 +529,7 @@ where
 
         // Case 1
         if self.is_red(sibling_ptr.clone()) {
-            self.delete_fix_case_1(node.clone(), sibling_ptr.clone().unwrap());
+            self.red_sibling_del(node.clone(), sibling_ptr.clone().unwrap());
             sibling_ptr = sibling_ptr.unwrap().as_ref().borrow().get_sibling();
         }
 
@@ -554,7 +552,7 @@ where
                 self.delete_fix(node_parent.clone().unwrap());
             }
         } else {
-            self.delete_fix_case_5(node.clone(), sibling.clone());
+            self.black_sibling_red_nephew_del(node.clone(), sibling.clone());
         }
 
     }
@@ -573,9 +571,7 @@ where
             moved_up_node = self.replace(node.clone());
             deleted_color = node.as_ref().borrow().get_color();
         } else {
-            // let right_child = self.right(node.clone()).unwrap();
             let left_child: Rc<RefCell<RedBlackTreeNode<T>>> = self.left(node.clone()).unwrap();
-            // let successor = self.find_min(right_child.clone());
             let successor = self.find_max(left_child.clone());
             let new_key = self.get_key(successor.clone());
             self.set_key(node.clone(), new_key);
@@ -589,7 +585,7 @@ where
             } else {
                 self.delete_fix(moved_up_node.clone().unwrap());
             }
-            // remove nil node after the fix
+            // remove nil node after done fixing
             if moved_up_node.is_some() && self.is_nil(moved_up_node.clone().unwrap()) {
                 let nil_parent = self.get_parent(moved_up_node.unwrap().clone());
                 self.replace_parent_child(nil_parent, node.clone(), None);  
@@ -597,7 +593,7 @@ where
         }   
     }
 
-    fn delete_fix_case_1(&mut self, node: Rc<RefCell<RedBlackTreeNode<T>>>, sibling: Rc<RefCell<RedBlackTreeNode<T>>>) {
+    fn red_sibling_del(&mut self, node: Rc<RefCell<RedBlackTreeNode<T>>>, sibling: Rc<RefCell<RedBlackTreeNode<T>>>) {
         let p = self.get_parent(node.clone());
         
         let sibling_ptr = sibling.clone();
@@ -615,7 +611,7 @@ where
         }
     }
 
-    fn delete_fix_case_5(&mut self, node: Rc<RefCell<RedBlackTreeNode<T>>>, sibling: Rc<RefCell<RedBlackTreeNode<T>>>) {      
+    fn black_sibling_red_nephew_del(&mut self, node: Rc<RefCell<RedBlackTreeNode<T>>>, sibling: Rc<RefCell<RedBlackTreeNode<T>>>) {      
         let mut sibling_ptr = sibling.clone();
         let parent_ptr = self.get_parent(node.clone()).unwrap();
         let is_left_child = self.equal(Some(node.clone()), self.left(parent_ptr.clone()));
