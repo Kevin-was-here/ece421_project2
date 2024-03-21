@@ -623,21 +623,6 @@ T: Ord + Copy + std::fmt::Debug + std::fmt::Display
         }
     }
 
-    // pub fn refresh_balance_factor(&mut self, node: Rc<RefCell<AvlTreeNode<T>>>) {
-    //     let mut current_node = node.clone();
-    //     //travel up the tree to update the height of the all acestors nodes
-    //     loop {
-    //         let mut n = current_node.as_ref().borrow_mut();
-    //         n.update_balance_factor();
-    //         if let Some(p) = n.get_parent() {
-    //             drop(n);
-    //             current_node = p;
-    //         } else {
-    //             break;
-    //         }
-    //     }{}
-    // }
-
     pub fn print_inorder(&self) {
         // PART 2.5 print in-order traversal of tree
         println!("-------- Tree In-Order -------");

@@ -28,12 +28,7 @@ pub struct RedBlackTree<T> {
 }
 
 impl<T: Ord> Traversible<T> for RedBlackTreeNode<T> {
-    // fn left_mut(&mut self) -> &mut Option<Rc<RefCell<Self>>> {
-    //     return self.left.borrow_mut();
-    // }
-    // fn right_mut(&mut self) -> &mut Option<Rc<RefCell<Self>>> {
-    //     return self.right.borrow_mut();
-    // }
+
     fn left(&self) -> &Option<Rc<RefCell<Self>>> {
         return &self.left;
     }
@@ -319,31 +314,32 @@ impl<T: Ord + Copy + std::fmt::Debug + std::fmt::Display> Tree<T> for RedBlackTr
         // if (y.left) != NULL
         //     (y.left).parent = x
         if let Some(yl) = y_left.clone() {
+            // let key = x.as_ref().borrow().get_key();
+            // let child_side = self.insert_side(yl.clone(), key.clone());
             self.set_parent(yl.clone(), Some(!side), Some(x.clone()));
         }
 
         // y.parent = x.parent
         let x_parent = self.get_parent(x.clone());
         let x_is_child = self.get_is_child(x.clone());
-        self.set_parent(y.clone(), x_is_child.clone(), x_parent.clone());
 
         // if x.parent == NULL //x is root
         //     T.root = y
         if x_parent.is_none() {
+            self.set_parent(y.clone(), None, None);
             self.set_root(Some(y.clone()));
         } else {
-            // elseif x == x.parent.left // x is left child
-            //     x.parent.left = y
-            // else // x is right child
-            //     x.parent.right = y
+            self.set_parent(y.clone(), x_is_child.clone(), x_parent.clone());
             let child_side = x_is_child.clone().unwrap();
             self.set_child(x_parent.unwrap().clone(), child_side.clone(), Some(y.clone()));
         }
 
         // y.left = x
         // x.parent = y
+        let y_val = self.get_key(y.clone());
+        let child_side = !self.insert_side(x.clone(), y_val).unwrap();
         self.set_child(y.clone(), side, Some(x.clone()));
-        self.set_parent(x.clone(), x_is_child, Some(y.clone()));
+        self.set_parent(x.clone(), Some(child_side), Some(y.clone()));
 
     }
 
@@ -378,7 +374,6 @@ impl<T: Ord + Copy + std::fmt::Debug + std::fmt::Display> Tree<T> for RedBlackTr
     }
 
     fn delete(&mut self, k: T) {
-
         let search = self.bst_find(self.get_root().clone(), k);
         if search.is_none() {
             return;
@@ -392,8 +387,8 @@ impl<T: Ord + Copy + std::fmt::Debug + std::fmt::Display> Tree<T> for RedBlackTr
             moved_up_node = self.replace(node.clone());
             deleted_color = node.as_ref().borrow().get_color();
         } else {
-            let right_child = self.right(node.clone()).unwrap();
-            let successor = self.find_min(right_child.clone());
+            let left_child: Rc<RefCell<RedBlackTreeNode<T>>> = self.left(node.clone()).unwrap();
+            let successor = self.find_max(left_child.clone());
             let new_key = self.get_key(successor.clone());
             self.set_key(node.clone(), new_key);
             deleted_color = successor.as_ref().borrow().get_color();
@@ -401,8 +396,13 @@ impl<T: Ord + Copy + std::fmt::Debug + std::fmt::Display> Tree<T> for RedBlackTr
         }
 
         if deleted_color == NodeColor::Black {
-            self.delete_fix(moved_up_node.clone().unwrap());
-            if self.is_nil(moved_up_node.clone().unwrap()) {
+            if self.is_red(moved_up_node.clone()) {
+                self.set_color(moved_up_node.clone().unwrap(), NodeColor::Black);
+            } else {
+                self.delete_fix(moved_up_node.clone().unwrap());
+            }
+            // remove nil node after done fixing
+            if moved_up_node.is_some() && self.is_nil(moved_up_node.clone().unwrap()) {
                 let nil_parent = self.get_parent(moved_up_node.unwrap().clone());
                 self.replace_parent_child(nil_parent, node.clone(), None);  
             }
@@ -564,7 +564,7 @@ where
 
         // Case 1
         if self.is_red(sibling_ptr.clone()) {
-            self.delete_fix_case_1(node.clone(), sibling_ptr.clone().unwrap());
+            self.red_sibling_del(node.clone(), sibling_ptr.clone().unwrap());
             sibling_ptr = sibling_ptr.unwrap().as_ref().borrow().get_sibling();
         }
 
@@ -587,12 +587,12 @@ where
                 self.delete_fix(node_parent.clone().unwrap());
             }
         } else {
-            self.delete_fix_case_5(node.clone(), sibling.clone());
+            self.black_sibling_red_nephew_del(node.clone(), sibling.clone());
         }
 
     }
 
-    fn delete_fix_case_1(&mut self, node: Rc<RefCell<RedBlackTreeNode<T>>>, sibling: Rc<RefCell<RedBlackTreeNode<T>>>) {
+    fn red_sibling_del(&mut self, node: Rc<RefCell<RedBlackTreeNode<T>>>, sibling: Rc<RefCell<RedBlackTreeNode<T>>>) {
         let p = self.get_parent(node.clone());
         
         let sibling_ptr = sibling.clone();
@@ -602,20 +602,20 @@ where
         parent_ptr.as_ref().borrow_mut().set_color(NodeColor::Red);
 
         let left = self.left(parent_ptr.clone());
-        let right = self.right(parent_ptr.clone());
 
-        if self.equal(Some(node.clone()), left.clone()) {
-            self.rotate(Side::Left, parent_ptr.clone());
-        } else {
+        if self.equal(Some(sibling.clone()), left.clone()) {
             self.rotate(Side::Right, parent_ptr.clone());
+        } else {
+            self.rotate(Side::Left, parent_ptr.clone());
         }
     }
 
-    fn delete_fix_case_5(&mut self, node: Rc<RefCell<RedBlackTreeNode<T>>>, sibling: Rc<RefCell<RedBlackTreeNode<T>>>) {        
+    fn black_sibling_red_nephew_del(&mut self, node: Rc<RefCell<RedBlackTreeNode<T>>>, sibling: Rc<RefCell<RedBlackTreeNode<T>>>) {      
         let mut sibling_ptr = sibling.clone();
         let parent_ptr = self.get_parent(node.clone()).unwrap();
         let is_left_child = self.equal(Some(node.clone()), self.left(parent_ptr.clone()));
 
+        // right left
         if is_left_child && !self.is_red(self.right(sibling_ptr.clone())) {
 
             let sibling_left = self.left(sibling_ptr.clone()).unwrap();
@@ -625,6 +625,7 @@ where
             sibling_ptr = self.right(parent_ptr.clone()).unwrap();
 
         } else if !is_left_child && !self.is_red(self.left(sibling_ptr.clone())) {
+        // left right
 
             let sibling_right = self.right(sibling_ptr.clone()).unwrap();
             self.set_color(sibling_right.clone(), NodeColor::Black);
@@ -637,15 +638,19 @@ where
         self.set_color(parent_ptr.clone(), NodeColor::Black);
 
         if is_left_child {
-
-            let sibling_right = self.right(sibling_ptr.clone()).unwrap();
-            self.set_color(sibling_right.clone(), NodeColor::Black);
+            let sibling_right = self.right(sibling_ptr.clone()); 
+            if sibling_right.is_none() {
+                return
+            }
+            self.set_color(sibling_right.unwrap().clone(), NodeColor::Black);
             self.rotate(Side::Left, parent_ptr.clone());
 
         } else {
-
-            let sibling_left = self.right(sibling_ptr.clone()).unwrap();
-            self.set_color(sibling_left.clone(), NodeColor::Black);
+            let sibling_left = self.left(sibling_ptr.clone()); 
+            if sibling_left.is_none() {
+                return
+            }
+            self.set_color(sibling_left.unwrap().clone(), NodeColor::Black);
             self.rotate(Side::Right, parent_ptr.clone());
         }
     }
