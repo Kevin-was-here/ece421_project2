@@ -32,16 +32,13 @@ pub trait Tree<T: Ord + Copy + std::fmt::Debug + std::fmt::Display> {
 
     fn count_leaves(&self) -> usize;
 
+    fn delete(&mut self, k: T);
+
     // ========== other functions
 
     fn get_root(&self) -> &Option<Rc<RefCell<Self::Node>>>;
     fn set_root(&mut self, node: Option<Rc<RefCell<Self::Node>>>);
-    // fn get_height(&self) -> usize;
-    // fn is_empty(&self) -> bool;
     fn insert_fix(&mut self, node: Rc<RefCell<Self::Node>>) -> Rc<RefCell<Self::Node>>;
-    // fn insert_fix(&mut self, node: Rc<RefCell<Self::Node>>);
-    // fn delete_fix(&mut self, node: Rc<RefCell<Self::Node>>);   
-
     fn rotate(&mut self, side: Side, node: Rc<RefCell<Self::Node>>);
 
     fn bst_insert(&mut self, root: Option<Rc<RefCell<Self::Node>>>, k: T) ->  Option<Rc<RefCell<Self::Node>>> {
@@ -163,7 +160,7 @@ pub trait Tree<T: Ord + Copy + std::fmt::Debug + std::fmt::Display> {
 
     fn climb_to_root(&self, node: Rc<RefCell<Self::Node>>) -> Rc<RefCell<Self::Node>> {
         let parent = node.as_ref().borrow().get_parent();
-        if parent.is_none() {{}
+        if parent.is_none() {
             node
         } else {
            self.climb_to_root(parent.clone().unwrap())
@@ -175,6 +172,14 @@ pub trait Tree<T: Ord + Copy + std::fmt::Debug + std::fmt::Display> {
         match n.left() {
             None => node.clone(),
             Some(child) => self.find_min(n.left().clone().unwrap().clone()),
+        }
+    }
+
+    fn find_max(&self, node: Rc<RefCell<Self::Node>>) -> Rc<RefCell<Self::Node>> {
+        let n = node.as_ref().borrow();
+        match n.right() {
+            None => node.clone(),
+            Some(child) => self.find_max(n.right().clone().unwrap().clone()),
         }
     }
     

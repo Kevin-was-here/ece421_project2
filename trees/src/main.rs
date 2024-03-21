@@ -25,8 +25,8 @@ fn test_rb() {
     tree.insert(12);
     tree.insert(7);
 
-    // tree.delete(6);
-    tree.delete(8);
+    tree.delete(6);
+    // tree.delete(8);
     tree.print_inorder();
     tree.print_structure();
     println!("num leaves: {}", tree.count_leaves());
@@ -57,7 +57,7 @@ fn test_avl(){
     avl.insert(2);
     avl.insert(3);
     avl.insert(4);
-    avl.insert(5);
+    avl.insert(5); 
     avl.insert(6);
     avl.insert(7);
     avl.insert(8);

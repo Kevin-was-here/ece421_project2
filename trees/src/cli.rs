@@ -118,14 +118,14 @@ fn tree_loop<T, R>() where
                 let mut node_val: T = T::default();
                 get_gen_type(&mut node_val);
                 tree.insert(node_val);
-                println!("> The node {node_val} was inserted.\n");
+                println!("> The node {node_val} was inserted, if it did not already exist in the tree.\n");
             }   
             2u32 => {
                 // delete
-                let mut node_val = 0;
+                let mut node_val: T = T::default();
                 get_gen_type(&mut node_val);
-                // tree.delete(node_val);
-                println!("> This feature is not yet implemented.\n");
+                tree.delete(node_val);
+                println!("> The node {node_val} was deleted, if it existed in the tree.\n");
             }
             3u32 => {
                 // count leaves
@@ -169,7 +169,12 @@ pub fn run_cli() {
         let mut c = 0;
         get_menu_choice("Please select a type of tree by entering the corresponding integer:
 1. Red-Black Tree
-2. AVL Tree", 2, &mut c);
+2. AVL Tree
+3. (Exit Program)", 3, &mut c);
+
+        if c == 3u32 {
+            break;
+        }
 
         let mut t = 0;
         get_menu_choice("Please select a type of node key to use with the tree:
@@ -194,7 +199,7 @@ pub fn run_cli() {
                     3u32 => tree_loop::<char, AvlTree<char>>(),
                     _ => println!("Something went wrong, please try again.\n")
                 }
-            }
+            },
             _ => println!("Something went wrong, please try again.\n")
         }
     }
