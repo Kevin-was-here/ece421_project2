@@ -3,6 +3,7 @@ use std::cmp::max;
 use std::rc::Rc;
 use crate::tree::*;
 use crate::node::*;
+use crate::cli::CLIPrintable;
 use std::borrow::{Borrow, BorrowMut};
 
 type MaybeAvlTree<T> = Option<Rc<RefCell<AvlTreeNode<T>>>>;
@@ -69,6 +70,7 @@ impl<T: Ord + Clone> Node<T> for AvlTreeNode<T>{
         match side {
             Side::Left => self.left.clone(),
             Side::Right => self.right.clone(),
+            Side::Neither => None
         }
     }
 
@@ -91,6 +93,7 @@ impl<T: Ord + Clone> Node<T> for AvlTreeNode<T>{
         match side {
             Side::Left => self.left.take(),
             Side::Right => self.right.take(),           
+            Side::Neither => None
         }
     }
 
@@ -98,6 +101,7 @@ impl<T: Ord + Clone> Node<T> for AvlTreeNode<T>{
         match side {
             Side::Left => self.left = child,
             Side::Right => self.right = child,
+            Side::Neither => {}
         }
     }
 
@@ -215,8 +219,62 @@ impl<T: Ord + std::fmt::Debug + std::fmt::Display +Copy>  AvlTreeNode<T> {
         }
     }
 
-    fn print_structure_node(&self, depth: usize) {
-        unimplemented!()
+    fn print_structure_node(&self, depth: usize, from: Side) {
+        // first go left...
+        if let Some(ptr) = &self.left {
+            ptr.as_ref().borrow().print_structure_node(depth + 1, Side::Left);            
+        }
+        
+        // print this node with prefix
+        // couple characters that make tree look 'smooth'
+        let smooth = match from {
+            Side::Left => "┌───────┘",
+            Side::Neither => "",
+            Side::Right => "└───────┐"
+        };
+        // case for depth to make lines line up nice
+        let space = if depth == 0 { 0 } else { (depth - 1) * 8 };
+        // print line representing this node
+        println!("{: <1$}{2}{3}", "", space, smooth, self.get_key());
+        
+        // then go right...
+        if let Some(ptr) = &self.right {
+            ptr.as_ref().borrow().print_structure_node(depth + 1, Side::Right);
+        }
+    }
+
+    fn count_leaves_node(&self) -> usize {
+        if self.is_leaf() {
+            return 1;
+        }
+        let mut count: usize = 0;
+        // otherwise, first go left for lower values
+        if let Some(ptr) = &self.left {
+            count += ptr.as_ref().borrow().count_leaves_node();
+        }
+        // then go right for higher values
+        if let Some(ptr) = &self.right {
+            count += ptr.as_ref().borrow().count_leaves_node();
+        }
+        return count;
+    }
+
+    fn get_height_node(&self, depth: usize) -> usize {
+        // recursive helper function for get_height of tree
+        if self.is_leaf() {
+            return depth;
+        }
+        // find max depth of either branch
+        let mut m: usize = usize::MIN;
+        // otherwise, first go left for lower values
+        if let Some(ptr) = &self.left {
+            m = std::cmp::max(m, ptr.as_ref().borrow().get_height_node(depth + 1));
+        }
+        // then go right for higher values
+        if let Some(ptr) = &self.right {
+            m = std::cmp::max(m, ptr.as_ref().borrow().get_height_node(depth + 1));
+        }
+        return m;
     }
 
 }
@@ -377,7 +435,6 @@ impl<T: Ord + Copy + std::fmt::Debug + std::fmt::Display> Tree<T> for AvlTree<T>
         if side == Side::Left {
             //left rotation
             //we need to rotate the node to the left
-
             //first we need to get the right child of the node
             let right_child_ptr = n.get_child(Side::Right);
             let right_child = right_child_ptr.as_ref().unwrap().as_ref().borrow_mut();
@@ -474,6 +531,70 @@ impl<T: Ord + Copy + std::fmt::Debug + std::fmt::Display> Tree<T> for AvlTree<T>
 
         }
     }
+
+    fn get_height(&self) -> usize {
+        // PART 1.4 get height of tree
+        if let Some(ptr) = &self.root {
+            let root: std::cell::Ref<'_, AvlTreeNode<T>> = ptr.as_ref().borrow();
+            return root.get_height_node(1);
+        }
+        else {
+            return 0;
+        }
+    }
+
+    fn print_inorder(&self) {
+        // PART 1.5 print in-order traversal of tree
+        println!("-------- Tree In-Order -------");
+        if let Some(ptr) = &self.root {
+            let root = ptr.as_ref().borrow();
+            root.print_inorder_node();
+        }
+        else {
+            println!("Empty tree");
+        }
+        println!("------------------------------");
+    }
+
+    fn print_structure(&self) {
+        // PART 1.7 print tree showing structure and colours
+        println!("------- Tree Structure -------");
+        if let Some(ptr) = &self.root {
+            let root = ptr.as_ref().borrow();
+            root.print_structure_node(0, Side::Neither);
+        }
+        else {
+            println!("Empty tree");
+        }       
+        println!("------------------------------");
+    }
+
+    fn count_leaves(&self) -> usize {
+        // PART 1.3 count leaves in tree
+        if let Some(ptr) = &self.root {
+            let root = ptr.as_ref().borrow();
+            return root.count_leaves_node();
+        }
+        else {
+            return 0;
+        }
+    }
+
+    fn is_empty(&self) -> bool {
+        // PART 1.6 check if tree empty
+        if let None = &self.root {
+            return true;
+        } else {
+            return false;
+        }
+    } 
+}
+
+
+impl<T> CLIPrintable for AvlTree<T> {
+    fn pretty_name() -> &'static str {
+        "AVL tree"
+    }
 }
 
 
@@ -509,7 +630,7 @@ T: Ord + Copy + std::fmt::Debug + std::fmt::Display
     //         } else {
     //             break;
     //         }
-    //     }
+    //     }{}
     // }
 
     pub fn print_inorder(&self) {
@@ -530,7 +651,7 @@ T: Ord + Copy + std::fmt::Debug + std::fmt::Display
        println!("------- Tree Structure -------");
         if let Some(ptr) = &self.root {
             let root = ptr.as_ref().borrow();
-            //root.print_structure_node(0, NodeIsFrom::Neither);
+            root.print_structure_node(0, Side::Neither);
         }
         else {
             println!("Empty tree");
