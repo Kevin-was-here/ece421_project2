@@ -282,28 +282,30 @@ impl<T: Ord + Copy + std::fmt::Debug + std::fmt::Display> Tree<T> for AvlTree<T>
 
                 //check for which of the 4 cases the tree is unbalanced
 
-                
+                //left heavy
                 if balance_factor > 1 {
-
                     //since balance factor is > 1 we know there is a left child
+                    //get left child and grandchild pointers
+                    
                     //get the left child key
-                    // let left_ptr = self.left(current_node.clone()).unwrap();
-                    // let left_key = self.get_key(left_ptr.clone());
-                    // drop(left_ptr);
+                    let left_ptr = self.left(current_node.clone()).unwrap();
+                    let left_key = self.get_key(left_ptr.clone());
+                    drop(left_ptr);
+                    
 
                     //case 1: bf > 1 and key value of node is less than key value of left child
-                    if node_key < root_key {
+                    if node_key < left_key {
                         println!("Case 1: Right rotation");
                         self.rotate(Side::Right, current_node.clone());
                     }
                 
                 //case 2: bf > 1 and key value of node is greater than key value of left child
-                    else if node_key > root_key {
+                    else if node_key > left_key {
                         println!("Case 2: Left-Right rotation");
-                        let n = current_node.as_ref().borrow();
-                        self.rotate(Side::Left, n.get_child(Side::Left).as_ref().unwrap().clone());
+                        let left_child = self.left(current_node.clone()).unwrap();
+                        self.rotate(Side::Left, left_child.clone());
                         self.rotate(Side::Right, current_node.clone());
-                        drop(n);
+                        drop(left_child);
                     }
                 }
                 //case 3: bf < -1 and key value of node is greater than key value of right child
@@ -315,18 +317,18 @@ impl<T: Ord + Copy + std::fmt::Debug + std::fmt::Display> Tree<T> for AvlTree<T>
                     let right_key = self.get_key(right_ptr.clone());
                     drop(right_ptr);
 
-                    if node_key > root_key{
+                    if node_key > right_key{
                         println!("Case 3: Left rotation");
                         self.rotate(Side::Left, current_node.clone());
                     }
 
                 //case 4: bf < -1 and key value of node is less than key value of right child
-                    else if node_key < root_key{
+                    else if node_key < right_key{
                         println!("Case 4: Right-Left rotation");
-                        let n = current_node.as_ref().borrow();
-                        self.rotate(Side::Right, n.get_child(Side::Right).as_ref().unwrap().clone());
+                        let right_child = self.right(current_node.clone()).unwrap();
+                        self.rotate(Side::Right, right_child.clone());
                         self.rotate(Side::Left, current_node.clone());
-                        drop(n);
+                        drop(right_child);
                     }
                 }
                 //after fixing the tree, we need to update the height of the node and all of its ancestors
