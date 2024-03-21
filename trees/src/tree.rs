@@ -79,6 +79,12 @@ pub trait Tree<T: Ord + Copy + std::fmt::Debug + std::fmt::Display> {
         rc.clone()
     }
 
+    fn bst_search(&self, key:T) -> bool{
+        let root = self.get_root().clone();
+        let node = self.bst_find(root.clone(), key);
+        node.is_some()
+    }
+    
     fn bst_find(&self, root: Option<Rc<RefCell<Self::Node>>>, k: T) -> Option<Rc<RefCell<Self::Node>>> {
         let mut current_node = root;
         // Find then replace

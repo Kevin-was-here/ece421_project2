@@ -50,7 +50,7 @@ fn test_avl(){
     avl.insert(1);
     avl.insert(5);
     avl.insert(6);
-    println!("AVL");
+    //println!("AVL");
 
     let mut avl:AvlTree<i32> = AvlTree::new();
     avl.insert(1);
@@ -65,11 +65,32 @@ fn test_avl(){
     avl.insert(10);
     avl.insert(11);
     avl.insert(12);
-    println!("AVL");
+    //println!("AVL");
+}
+
+fn test_search(){
+
+    let mut avl:AvlTree<i32> = AvlTree::new();
+    avl.insert(1);
+    avl.insert(2);
+    avl.insert(3);
+    avl.insert(4);
+    avl.insert(5);
+    avl.insert(6);
+    avl.insert(7);
+    avl.insert(8);
+    avl.insert(9);
+    avl.insert(10);
+    avl.insert(11);
+    avl.insert(12);
+
+    println!( "search is {}", avl.bst_search(12));
+    println!( "search is {}", avl.bst_search(13));
 }
 
 fn main() {
     //test_avl();
     //test_rb();
+    //test_search();
     cli::run_cli();
 }

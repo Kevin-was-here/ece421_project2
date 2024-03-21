@@ -4,13 +4,11 @@
 // A search is conducted for the (tree_size/10) lowest values.
 // end
 
-#[path = "../src/rb_tree.rs"]
-mod rb_tree;
-#[path = "../src/avl_tree.rs"]
-mod avl_tree;
+use lib::{rb_tree::RedBlackTree, tree::Tree, avl_tree::AvlTree, node::Node};
 
 use std::iter;
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use rand::{thread_rng, Rng};
 
 //---------- RB Tree ---------------
 fn bench_rb_tree_insert(c: &mut Criterion){
@@ -19,7 +17,7 @@ fn bench_rb_tree_insert(c: &mut Criterion){
 
     let mut rng = rand::thread_rng();
     //create an empty tree
-    let mut rb_tree = rb_tree::RedBlackTree::new();
+    let mut rb_tree = RedBlackTree::new();
 
     for tree_size in [10000, 40000, 70000 , 100000, 130000].iter() {
         group.bench_with_input(
@@ -41,16 +39,14 @@ fn bench_rb_tree_search(c: &mut Criterion){
 
     let mut group = c.benchmark_group("bench_rb_tree");
 
-    let mut rng = rand::thread_rng();
     //create an empty tree
-    let mut rb_tree = rb_tree::RedBlackTree::new();
+    let mut rb_tree = RedBlackTree::new();
 
     //for 10k elements
     for tree_size in [10000, 40000, 70000 , 100000, 130000].iter() {
         //insert the values into the tree without benching
-        for _ in 0..tree_size {
-            let value = rng.gen_range(0..tree_size);
-            rb_tree.insert(value);
+        for i in 0..=*tree_size {
+            rb_tree.insert(i);
         }
 
         //bench the search to the tree_size/10 lowest values
@@ -61,7 +57,7 @@ fn bench_rb_tree_search(c: &mut Criterion){
                 b.iter(|| {
                     //search for the lowest values
                     for i in 0..tree_size/10 {
-                        rb_tree.search(i);
+                        rb_tree.bst_search(i);
                     }
                 })
             },
@@ -78,7 +74,7 @@ fn bench_avl_tree_insert(c: &mut Criterion){
 
     let mut rng = rand::thread_rng();
     //create an empty tree
-    let mut avl_tree = avl_tree::AVLTree::new();
+    let mut avl_tree = AvlTree::new();
 
     for tree_size in [10000, 40000, 70000 , 100000, 130000].iter() {
         group.bench_with_input(
@@ -101,17 +97,15 @@ fn bench_avl_tree_search(c: &mut Criterion){
     
         let mut group = c.benchmark_group("bench_avl_tree");
     
-        let mut rng = rand::thread_rng();
         //create an empty tree
-        let mut avl_tree = avl_tree::AVLTree::new();
+        let mut avl_tree = AvlTree::new();
 
         for tree_size in [10000, 40000, 70000 , 100000, 130000].iter() {
             //insert the values into the tree without benching
-            for _ in 0..tree_size {
-                let value = rng.gen_range(0..tree_size);
-                avl_tree.insert(value);
+            for i in 0..*tree_size {
+                avl_tree.insert(i);
             }
-    
+
             //bench the search to the tree_size/10 lowest values
             group.bench_with_input(
                 criterion::BenchmarkId::new("AVL_tree_search", tree_size),
@@ -120,7 +114,7 @@ fn bench_avl_tree_search(c: &mut Criterion){
                     b.iter(|| {
                         //search for the lowest values
                         for i in 0..tree_size/10 {
-                            avl_tree.search(i);
+                            avl_tree.bst_search(i);
                         }
                     })
                 },
@@ -129,3 +123,6 @@ fn bench_avl_tree_search(c: &mut Criterion){
         }
         group.finish();
 }
+
+criterion_group!(benches, bench_rb_tree_insert, bench_rb_tree_search, bench_avl_tree_insert, bench_avl_tree_search);
+criterion_main!(benches);

@@ -180,14 +180,6 @@ impl<T: Ord + std::fmt::Debug + std::fmt::Display +Copy>  AvlTreeNode<T> {
         self.set_height(calculated_height);
     }
 
-    // fn get_balance_factor(&self) -> i8{
-    //     self.balance_factor
-    // }
-
-    // fn set_balance_factor(&mut self, bf: i8){
-    //     self.balance_factor = bf;
-    // }
-
     // Helper function to get the balance factor of a node.
     fn get_balance_factor(&mut self) -> i8{
 
@@ -326,17 +318,17 @@ impl<T: Ord + Copy + std::fmt::Debug + std::fmt::Display> Tree<T> for AvlTree<T>
         //check balancing factor of the node and its acestors
         let mut current_node = node.clone();
         loop{
-            // let temp = current_node.clone();
-            // let n = current_node.as_ref().borrow();
-            // let balance_factor = n.get_balance_factor();
+
             let balance_factor = self.get_balance_factor(current_node.clone());
             let root_key = self.get_key(current_node.clone());
-
-            println!("For node {} Balance factor: {}", root_key, balance_factor);
+            
             if balance_factor > 1 || balance_factor < -1 {
                 is_balanced = false;
                 //Tree is unbalanced, we need to fix it
-                println!("Tree is unbalanced, fixing it");
+
+                //debug
+                //println!("For node {} Balance factor: {}", root_key, balance_factor);
+                //println!("Tree is unbalanced, fixing it");
 
                 //check for which of the 4 cases the tree is unbalanced
 
@@ -353,13 +345,13 @@ impl<T: Ord + Copy + std::fmt::Debug + std::fmt::Display> Tree<T> for AvlTree<T>
 
                     //case 1: bf > 1 and key value of node is less than key value of left child
                     if node_key < left_key {
-                        println!("Case 1: Right rotation");
+                        //println!("Case 1: Right rotation");
                         self.rotate(Side::Right, current_node.clone());
                     }
                 
                 //case 2: bf > 1 and key value of node is greater than key value of left child
                     else if node_key > left_key {
-                        println!("Case 2: Left-Right rotation");
+                        //println!("Case 2: Left-Right rotation");
                         let left_child = self.left(current_node.clone()).unwrap();
                         self.rotate(Side::Left, left_child.clone());
                         self.rotate(Side::Right, current_node.clone());
@@ -376,13 +368,13 @@ impl<T: Ord + Copy + std::fmt::Debug + std::fmt::Display> Tree<T> for AvlTree<T>
                     drop(right_ptr);
 
                     if node_key > right_key{
-                        println!("Case 3: Left rotation");
+                        //println!("Case 3: Left rotation");
                         self.rotate(Side::Left, current_node.clone());
                     }
 
                 //case 4: bf < -1 and key value of node is less than key value of right child
                     else if node_key < right_key{
-                        println!("Case 4: Right-Left rotation");
+                        //println!("Case 4: Right-Left rotation");
                         let right_child = self.right(current_node.clone()).unwrap();
                         self.rotate(Side::Right, right_child.clone());
                         self.rotate(Side::Left, current_node.clone());
@@ -428,7 +420,9 @@ impl<T: Ord + Copy + std::fmt::Debug + std::fmt::Display> Tree<T> for AvlTree<T>
         //here side means the direction of rotation
 
         let node_key = self.get_key(node.clone());
-        println!("Rotating node {}", node_key);
+
+        //debug
+        //println!("Rotating node {}", node_key);
 
         let mut n = node.as_ref().borrow_mut();
 
