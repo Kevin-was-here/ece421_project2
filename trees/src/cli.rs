@@ -124,8 +124,13 @@ fn tree_loop<T, R>() where
                 // delete
                 let mut node_val: T = T::default();
                 get_gen_type(&mut node_val);
-                tree.delete(node_val);
-                println!("> The node {node_val} was deleted, if it existed in the tree.\n");
+                if R::pretty_name() == "AVL tree" {
+                    println!("> This feature is not yet implemented.")
+                }
+                else {
+                    tree.delete(node_val);
+                    println!("> The node {node_val} was deleted, if it existed in the tree.\n");
+                }
             }
             3u32 => {
                 // count leaves
