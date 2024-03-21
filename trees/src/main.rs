@@ -8,7 +8,6 @@ use std::io::stdin;
 use crate::rb_tree::*;
 use crate::tree::*;
 use crate::avl_tree::*;
-//use crate::avl_tree::*;
 use crate::cli::*;
 
 fn test_rb() {

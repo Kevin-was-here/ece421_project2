@@ -7,6 +7,7 @@ use std::cmp::max;
 #[derive(Clone, Debug, PartialEq, Copy)]
 pub enum Side {
     Left,
+    Neither,
     Right,
 }
 
@@ -16,6 +17,7 @@ impl Not for Side {
         match self {
             Side::Left => Side::Right,
             Side::Right => Side::Left,
+            Side::Neither => Side::Neither
         }
     }
 }
