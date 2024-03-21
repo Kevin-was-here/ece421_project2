@@ -11,7 +11,6 @@ path = "src/lib.rs"
 
 [dependencies]
 criterion = { version = "0.4", features = ["html_reports"] }
-rand = "0.7.3"
 
 [[bench]]
 name = "benchmark"
