@@ -51,7 +51,7 @@ fn test_avl(){
     avl.insert(1);
     avl.insert(5);
     avl.insert(6);
-    println!("AVL");
+    //println!("AVL");
 
     let mut avl:AvlTree<i32> = AvlTree::new();
     avl.insert(1);
@@ -66,11 +66,11 @@ fn test_avl(){
     avl.insert(10);
     avl.insert(11);
     avl.insert(12);
-    println!("AVL");
+    //println!("AVL");
 }
 
 fn main() {
-    //test_avl();
-    //test_rb();
-    cli::run_cli();
+    test_avl();
+    test_rb();
+    //cli::run_cli();
 }
